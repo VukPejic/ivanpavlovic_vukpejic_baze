@@ -1,6 +1,6 @@
 package view;
 
-import controller.SessionDeleteController;
+import controller.SesijaController;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
@@ -17,7 +17,7 @@ import model.Korisnik;
 import model.Sesija;
 
 public class SessionDeleteView {
-    private final SessionDeleteController controller = new SessionDeleteController();
+    private final SesijaController controller = new SesijaController();
     private final TableView<Sesija> table = new TableView<>();
     private final Label statusLabel = new Label();
 
@@ -51,7 +51,9 @@ public class SessionDeleteView {
         root.setPadding(new Insets(20));
 
         stage.setTitle("Brisanje sesije");
-        stage.setScene(new Scene(root, 1100, 700));
+        Scene scene = new Scene(root, 1100, 700);
+        Style.apply(scene);
+        stage.setScene(scene);
         stage.show();
     }
 
@@ -89,7 +91,7 @@ public class SessionDeleteView {
     }
 
     private void ucitajSesije() {
-        SessionDeleteController.SessionListResult result = controller.ucitajSesije();
+        SesijaController.SessionListResult result = controller.ucitajSesije();
         table.setItems(FXCollections.observableArrayList(result.getSessions()));
         if (result.isSuccess()) {
             statusLabel.setText("Učitano sesija: " + result.getSessions().size());
@@ -105,7 +107,7 @@ public class SessionDeleteView {
             return;
         }
 
-        SessionDeleteController.OperationResult result = controller.izbrisiSesiju(korisnik.getIstrazivacId(), selected.getSesijaId());
+        SesijaController.OperationResult result = controller.izbrisiSesiju(korisnik.getIstrazivacId(), selected.getSesijaId());
         statusLabel.setText(result.getMessage());
         if (result.isSuccess()) {
             ucitajSesije();

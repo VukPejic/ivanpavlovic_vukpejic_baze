@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 19, 2026 at 05:56 PM
+-- Generation Time: May 26, 2026 at 02:28 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -20,13 +20,16 @@ SET time_zone = "+00:00";
 --
 -- Database: `ivanpavlovic_vukpejic_baza`
 --
+CREATE DATABASE IF NOT EXISTS `ivanpavlovic_vukpejic_baza` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+USE `ivanpavlovic_vukpejic_baza`;
 
 DELIMITER $$
 --
 -- Procedures
 --
+DROP PROCEDURE IF EXISTS `izbrisi_sesiju`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `izbrisi_sesiju` (IN `_istrazivac_id` INT, IN `_sesija_id` INT, OUT `_izbrisani` INT)   BEGIN
-	DECLARE broj_redova INT;
+    DECLARE broj_redova INT;
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
 	BEGIN
     	SELECT 'Greska';
@@ -43,6 +46,7 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `izbrisi_sesiju` (IN `_istrazivac_id
     SET _izbrisani = broj_redova - _izbrisani;
 END$$
 
+DROP PROCEDURE IF EXISTS `registruj_korisnika`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `registruj_korisnika` (IN `_ime` VARCHAR(50), IN `_prezime` VARCHAR(50), IN `_kvalifikacije` TEXT, IN `_username` VARCHAR(100), IN `_lozinka` VARCHAR(255))   BEGIN
     DECLARE _istrazivac_id INT;
 
@@ -68,6 +72,7 @@ END$$
 --
 -- Functions
 --
+DROP FUNCTION IF EXISTS `prijavi_korisnika`$$
 CREATE DEFINER=`root`@`localhost` FUNCTION `prijavi_korisnika` (`_username` VARCHAR(100), `_lozinka` VARCHAR(255)) RETURNS TINYINT(1)  BEGIN
     DECLARE brojac INT;
     DECLARE _hash_lozinka VARCHAR(255);
@@ -75,8 +80,28 @@ CREATE DEFINER=`root`@`localhost` FUNCTION `prijavi_korisnika` (`_username` VARC
     SELECT COUNT(*) INTO brojac
     FROM korisnik
     WHERE username = _username AND lozinka = _hash_lozinka;
-
     RETURN brojac = 1;
+END$$
+
+DROP FUNCTION IF EXISTS `prijavi_korisnika_tester`$$
+CREATE DEFINER=`root`@`localhost` FUNCTION `prijavi_korisnika_tester` () RETURNS TINYINT(1)  BEGIN
+    DECLARE test1 BOOLEAN;
+    DECLARE test2 BOOLEAN;
+    DECLARE test3 BOOLEAN;
+    DECLARE test4 BOOLEAN;
+    DECLARE test5 BOOLEAN;
+
+    SET test1 = prijavi_korisnika('test1', 'test1');
+    SET test2 = prijavi_korisnika('test2', 'test3');
+    SET test3 = prijavi_korisnika('test3', 'test3');
+    SET test4 = prijavi_korisnika('test1', 'test4');
+    SET test5 = prijavi_korisnika('test5', 'test5');
+
+    IF test1 = TRUE AND test2 = FALSE AND test3 = TRUE AND test4 = FALSE AND test5 = TRUE THEN
+        RETURN TRUE;
+    ELSE
+        RETURN FALSE;
+    END IF;
 END$$
 
 DELIMITER ;
@@ -87,6 +112,7 @@ DELIMITER ;
 -- Table structure for table `alat`
 --
 
+DROP TABLE IF EXISTS `alat`;
 CREATE TABLE `alat` (
   `alat_id` int(11) NOT NULL,
   `laboratorija_id` int(11) NOT NULL,
@@ -209,6 +235,7 @@ INSERT INTO `alat` (`alat_id`, `laboratorija_id`, `tip_alata_id`, `identifikacio
 -- Table structure for table `alat_eksperiment`
 --
 
+DROP TABLE IF EXISTS `alat_eksperiment`;
 CREATE TABLE `alat_eksperiment` (
   `eksperiment_id` int(11) NOT NULL,
   `tip_alata_id` int(11) NOT NULL,
@@ -327,6 +354,7 @@ INSERT INTO `alat_eksperiment` (`eksperiment_id`, `tip_alata_id`, `potrebna_koli
 -- Table structure for table `alat_sesija`
 --
 
+DROP TABLE IF EXISTS `alat_sesija`;
 CREATE TABLE `alat_sesija` (
   `sesija_id` int(11) NOT NULL,
   `alat_id` int(11) NOT NULL
@@ -439,9 +467,24 @@ INSERT INTO `alat_sesija` (`sesija_id`, `alat_id`) VALUES
 -- --------------------------------------------------------
 
 --
+-- Stand-in structure for view `dizajneri_na_eksperimentu`
+-- (See below for the actual view)
+--
+DROP VIEW IF EXISTS `dizajneri_na_eksperimentu`;
+CREATE TABLE `dizajneri_na_eksperimentu` (
+`eksperiment_id` int(11)
+,`naziv` varchar(100)
+,`broj_istrazivaca` bigint(21)
+,`istrazivaci` mediumtext
+);
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `dizajner_eksperiment`
 --
 
+DROP TABLE IF EXISTS `dizajner_eksperiment`;
 CREATE TABLE `dizajner_eksperiment` (
   `eksperiment_id` int(11) NOT NULL,
   `istrazivac_id` int(11) NOT NULL,
@@ -454,6 +497,11 @@ CREATE TABLE `dizajner_eksperiment` (
 
 INSERT INTO `dizajner_eksperiment` (`eksperiment_id`, `istrazivac_id`, `teorija_id`) VALUES
 (1, 1, 1),
+(1, 101, 1),
+(1, 102, 1),
+(1, 103, 1),
+(1, 104, 1),
+(1, 105, 1),
 (68, 68, 2),
 (35, 35, 3),
 (2, 2, 4),
@@ -560,6 +608,7 @@ INSERT INTO `dizajner_eksperiment` (`eksperiment_id`, `istrazivac_id`, `teorija_
 -- Table structure for table `eksperiment`
 --
 
+DROP TABLE IF EXISTS `eksperiment`;
 CREATE TABLE `eksperiment` (
   `eksperiment_id` int(11) NOT NULL,
   `naziv` varchar(100) NOT NULL,
@@ -677,9 +726,54 @@ INSERT INTO `eksperiment` (`eksperiment_id`, `naziv`, `ciljevi`, `teorijski_okvi
 -- --------------------------------------------------------
 
 --
+-- Stand-in structure for view `eksperiment_sva_kola`
+-- (See below for the actual view)
+--
+DROP VIEW IF EXISTS `eksperiment_sva_kola`;
+CREATE TABLE `eksperiment_sva_kola` (
+`eksperiment_id` int(11)
+,`elektricno_kolo_id` int(11)
+,`naziv` varchar(100)
+,`sema_kola` mediumtext
+);
+
+-- --------------------------------------------------------
+
+--
+-- Stand-in structure for view `eksperiment_svi_prototipi`
+-- (See below for the actual view)
+--
+DROP VIEW IF EXISTS `eksperiment_svi_prototipi`;
+CREATE TABLE `eksperiment_svi_prototipi` (
+`eksperiment_id` int(11)
+,`prototip_id` int(11)
+,`naziv` varchar(100)
+,`opis` mediumtext
+,`izvor` varchar(11)
+);
+
+-- --------------------------------------------------------
+
+--
+-- Stand-in structure for view `eksperiment_svi_senzori`
+-- (See below for the actual view)
+--
+DROP VIEW IF EXISTS `eksperiment_svi_senzori`;
+CREATE TABLE `eksperiment_svi_senzori` (
+`eksperiment_id` int(11)
+,`senzor_id` int(11)
+,`naziv` varchar(50)
+,`opis` mediumtext
+,`izvor` varchar(11)
+);
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `elektricno_kolo`
 --
 
+DROP TABLE IF EXISTS `elektricno_kolo`;
 CREATE TABLE `elektricno_kolo` (
   `elektricno_kolo_id` int(11) NOT NULL,
   `sema_kola` text DEFAULT NULL,
@@ -798,6 +892,7 @@ INSERT INTO `elektricno_kolo` (`elektricno_kolo_id`, `sema_kola`, `naziv`) VALUE
 -- Table structure for table `inventar_resursa`
 --
 
+DROP TABLE IF EXISTS `inventar_resursa`;
 CREATE TABLE `inventar_resursa` (
   `laboratorija_id` int(11) NOT NULL,
   `resurs_id` int(11) NOT NULL,
@@ -916,122 +1011,673 @@ INSERT INTO `inventar_resursa` (`laboratorija_id`, `resurs_id`, `dostupna_kolici
 -- Table structure for table `ispitivanje`
 --
 
+DROP TABLE IF EXISTS `ispitivanje`;
 CREATE TABLE `ispitivanje` (
   `ispitivanje_id` int(11) NOT NULL,
-  `elektricno_kolo_id` int(11) NOT NULL,
-  `impedansa` decimal(15,4) DEFAULT NULL,
-  `snaga` decimal(15,4) DEFAULT NULL,
-  `struja` decimal(15,4) DEFAULT NULL,
-  `datum_pocetka` date DEFAULT NULL,
-  `status` varchar(50) DEFAULT NULL
+  `rezultat` text DEFAULT NULL,
+  `izvodjenje_id` int(11) NOT NULL,
+  `opis` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `ispitivanje`
 --
 
-INSERT INTO `ispitivanje` (`ispitivanje_id`, `elektricno_kolo_id`, `impedansa`, `snaga`, `struja`, `datum_pocetka`, `status`) VALUES
-(1, 1, 9.8931, 14.9732, 1.5135, '2024-03-03', 'planirano'),
-(2, 1, 9.8931, 14.9732, 1.5135, '2024-03-03', 'planirano'),
-(3, 2, 6.3579, 7.1660, 1.1271, '2024-03-05', 'u toku'),
-(4, 3, 15.7334, 24.3978, 1.5507, '2024-03-07', 'zavrseno'),
-(5, 4, 17.9483, 27.2096, 1.5160, '2024-03-09', 'ponoviti'),
-(6, 5, 19.9559, 13.1549, 0.6592, '2024-03-11', 'obustavljeno'),
-(7, 6, 12.3270, 15.3989, 1.2492, '2024-03-13', 'planirano'),
-(8, 7, 8.3839, 8.0293, 0.9577, '2024-03-15', 'u toku'),
-(9, 8, 13.2952, 23.6641, 1.7799, '2024-03-17', 'zavrseno'),
-(10, 9, 21.9546, 8.9772, 0.4089, '2024-03-19', 'ponoviti'),
-(11, 10, 6.0458, 13.2391, 2.1898, '2024-03-21', 'obustavljeno'),
-(12, 11, 17.6194, 4.0754, 0.2313, '2024-03-23', 'planirano'),
-(13, 12, 5.4447, 7.1233, 1.3083, '2024-03-25', 'u toku'),
-(14, 13, 15.4493, 14.5486, 0.9417, '2024-03-27', 'zavrseno'),
-(15, 14, 18.2169, 44.7699, 2.4576, '2024-03-29', 'ponoviti'),
-(16, 15, 23.7939, 10.0006, 0.4203, '2024-03-31', 'obustavljeno'),
-(17, 16, 11.2487, 19.1037, 1.6983, '2024-04-02', 'planirano'),
-(18, 17, 9.8694, 14.3728, 1.4563, '2024-04-04', 'u toku'),
-(19, 18, 5.7483, 1.2048, 0.2096, '2024-04-06', 'zavrseno'),
-(20, 19, 2.1433, 2.7629, 1.2891, '2024-04-08', 'ponoviti'),
-(21, 20, 22.7615, 55.0419, 2.4182, '2024-04-10', 'obustavljeno'),
-(22, 21, 21.7437, 27.6167, 1.2701, '2024-04-12', 'planirano'),
-(23, 22, 6.8637, 11.8193, 1.7220, '2024-04-14', 'u toku'),
-(24, 23, 17.6142, 6.9946, 0.3971, '2024-04-16', 'zavrseno'),
-(25, 24, 10.3350, 10.4094, 1.0072, '2024-04-18', 'ponoviti'),
-(26, 25, 11.8662, 19.7703, 1.6661, '2024-04-20', 'obustavljeno'),
-(27, 26, 16.5658, 27.6781, 1.6708, '2024-04-22', 'planirano'),
-(28, 27, 15.4885, 3.9016, 0.2519, '2024-04-24', 'u toku'),
-(29, 28, 23.4414, 12.7029, 0.5419, '2024-04-26', 'zavrseno'),
-(30, 29, 9.3885, 14.7916, 1.5755, '2024-04-28', 'ponoviti'),
-(31, 30, 21.1246, 19.4853, 0.9224, '2024-04-30', 'obustavljeno'),
-(32, 31, 3.1848, 4.6246, 1.4521, '2024-05-02', 'planirano'),
-(33, 32, 10.4584, 11.5659, 1.1059, '2024-05-04', 'u toku'),
-(34, 33, 11.6168, 28.7760, 2.4771, '2024-05-06', 'zavrseno'),
-(35, 34, 22.6850, 8.4842, 0.3740, '2024-05-08', 'ponoviti'),
-(36, 35, 23.3889, 11.2220, 0.4798, '2024-05-10', 'obustavljeno'),
-(37, 36, 9.8379, 0.1230, 0.0125, '2024-05-12', 'planirano'),
-(38, 37, 5.2396, 7.4879, 1.4291, '2024-05-14', 'u toku'),
-(39, 38, 22.0198, 23.8518, 1.0832, '2024-05-16', 'zavrseno'),
-(40, 39, 20.4179, 15.8259, 0.7751, '2024-05-18', 'ponoviti'),
-(41, 40, 10.8856, 24.0234, 2.2069, '2024-05-20', 'obustavljeno'),
-(42, 41, 6.9973, 10.0712, 1.4393, '2024-05-22', 'planirano'),
-(43, 42, 20.0352, 29.3235, 1.4636, '2024-05-24', 'u toku'),
-(44, 43, 12.0241, 23.8113, 1.9803, '2024-05-26', 'zavrseno'),
-(45, 44, 16.3211, 3.0553, 0.1872, '2024-05-28', 'ponoviti'),
-(46, 45, 11.3052, 23.5442, 2.0826, '2024-05-30', 'obustavljeno'),
-(47, 46, 23.7551, 39.1223, 1.6469, '2024-06-01', 'planirano'),
-(48, 47, 4.9224, 6.1328, 1.2459, '2024-06-03', 'u toku'),
-(49, 48, 13.3476, 17.9018, 1.3412, '2024-06-05', 'zavrseno'),
-(50, 49, 12.5564, 21.3421, 1.6997, '2024-06-07', 'ponoviti'),
-(51, 50, 16.7127, 6.4511, 0.3860, '2024-06-09', 'obustavljeno'),
-(52, 51, 4.9531, 3.5836, 0.7235, '2024-06-11', 'planirano'),
-(53, 52, 15.8994, 0.4468, 0.0281, '2024-06-13', 'u toku'),
-(54, 53, 19.6569, 32.8683, 1.6721, '2024-06-15', 'zavrseno'),
-(55, 54, 5.6928, 1.4226, 0.2499, '2024-06-17', 'ponoviti'),
-(56, 55, 20.1370, 18.1978, 0.9037, '2024-06-19', 'obustavljeno'),
-(57, 56, 9.4284, 3.8600, 0.4094, '2024-06-21', 'planirano'),
-(58, 57, 14.6688, 10.1464, 0.6917, '2024-06-23', 'u toku'),
-(59, 58, 19.2589, 19.2916, 1.0017, '2024-06-25', 'zavrseno'),
-(60, 59, 2.2299, 1.3056, 0.5855, '2024-06-27', 'ponoviti'),
-(61, 60, 9.5683, 6.0261, 0.6298, '2024-06-29', 'obustavljeno'),
-(62, 61, 5.9768, 2.9161, 0.4879, '2024-07-01', 'planirano'),
-(63, 62, 22.9651, 24.3798, 1.0616, '2024-07-03', 'u toku'),
-(64, 63, 8.8034, 4.8560, 0.5516, '2024-07-05', 'zavrseno'),
-(65, 64, 12.8124, 23.3275, 1.8207, '2024-07-07', 'ponoviti'),
-(66, 65, 15.1502, 24.0025, 1.5843, '2024-07-09', 'obustavljeno'),
-(67, 66, 15.9581, 0.9176, 0.0575, '2024-07-11', 'planirano'),
-(68, 67, 9.7911, 11.7376, 1.1988, '2024-07-13', 'u toku'),
-(69, 68, 20.9444, 23.1750, 1.1065, '2024-07-15', 'zavrseno'),
-(70, 69, 1.9236, 1.3513, 0.7025, '2024-07-17', 'ponoviti'),
-(71, 70, 2.7524, 4.6898, 1.7039, '2024-07-19', 'obustavljeno'),
-(72, 71, 16.0768, 24.7888, 1.5419, '2024-07-21', 'planirano'),
-(73, 72, 15.0808, 4.2799, 0.2838, '2024-07-23', 'u toku'),
-(74, 73, 8.4847, 4.4910, 0.5293, '2024-07-25', 'zavrseno'),
-(75, 74, 11.9412, 20.8183, 1.7434, '2024-07-27', 'ponoviti'),
-(76, 75, 9.7569, 22.2789, 2.2834, '2024-07-29', 'obustavljeno'),
-(77, 76, 5.4004, 3.5999, 0.6666, '2024-07-31', 'planirano'),
-(78, 77, 2.0627, 1.9462, 0.9435, '2024-08-02', 'u toku'),
-(79, 78, 18.3413, 8.4352, 0.4599, '2024-08-04', 'zavrseno'),
-(80, 79, 23.4261, 29.3716, 1.2538, '2024-08-06', 'ponoviti'),
-(81, 80, 10.7823, 6.1427, 0.5697, '2024-08-08', 'obustavljeno'),
-(82, 81, 13.0799, 9.3979, 0.7185, '2024-08-10', 'planirano'),
-(83, 82, 11.6247, 22.3066, 1.9189, '2024-08-12', 'u toku'),
-(84, 83, 22.9884, 52.3170, 2.2758, '2024-08-14', 'zavrseno'),
-(85, 84, 6.8971, 10.3484, 1.5004, '2024-08-16', 'ponoviti'),
-(86, 85, 9.4175, 15.8336, 1.6813, '2024-08-18', 'obustavljeno'),
-(87, 86, 20.9979, 30.1194, 1.4344, '2024-08-20', 'planirano'),
-(88, 87, 23.8685, 54.4130, 2.2797, '2024-08-22', 'u toku'),
-(89, 88, 22.9789, 43.4117, 1.8892, '2024-08-24', 'zavrseno'),
-(90, 89, 23.6467, 43.7819, 1.8515, '2024-08-26', 'ponoviti'),
-(91, 90, 18.1893, 9.7422, 0.5356, '2024-08-28', 'obustavljeno'),
-(92, 91, 13.4813, 12.5255, 0.9291, '2024-08-30', 'planirano'),
-(93, 92, 23.8041, 17.7055, 0.7438, '2024-09-01', 'u toku'),
-(94, 93, 5.1244, 8.4922, 1.6572, '2024-09-03', 'zavrseno'),
-(95, 94, 15.3063, 17.8181, 1.1641, '2024-09-05', 'ponoviti'),
-(96, 95, 12.6308, 6.0742, 0.4809, '2024-09-07', 'obustavljeno'),
-(97, 96, 6.2745, 2.9183, 0.4651, '2024-09-09', 'planirano'),
-(98, 97, 20.1094, 11.2512, 0.5595, '2024-09-11', 'u toku'),
-(99, 98, 12.2370, 1.2983, 0.1061, '2024-09-13', 'zavrseno'),
-(100, 99, 20.8217, 10.7961, 0.5185, '2024-09-15', 'ponoviti'),
-(101, 100, 19.2564, 16.2447, 0.8436, '2024-09-17', 'obustavljeno');
+INSERT INTO `ispitivanje` (`ispitivanje_id`, `rezultat`, `izvodjenje_id`, `opis`) VALUES
+(1, 'Elementi su pravilno povezani. Redni broj ispitivanja: 1.', 1, 'Vizuelna provera električnog kola broj 1.'),
+(2, 'Rad je u očekivanim granicama. Redni broj ispitivanja: 2.', 2, 'Funkcionalno ispitivanje električnog kola broj 2.'),
+(3, 'Sistem radi stabilno tokom sesije. Redni broj ispitivanja: 3.', 3, 'Ispitivanje stabilnosti električnog kola broj 3.'),
+(4, 'Odziv je zabeležen i prihvatljiv. Redni broj ispitivanja: 4.', 4, 'Provera odziva električnog kola broj 4.'),
+(5, 'Ispitivanje je uspešno evidentirano. Redni broj ispitivanja: 5.', 5, 'Završna provera električnog kola broj 5.'),
+(6, 'Elementi su pravilno povezani. Redni broj ispitivanja: 6.', 6, 'Vizuelna provera električnog kola broj 6.'),
+(7, 'Rad je u očekivanim granicama. Redni broj ispitivanja: 7.', 7, 'Funkcionalno ispitivanje električnog kola broj 7.'),
+(8, 'Sistem radi stabilno tokom sesije. Redni broj ispitivanja: 8.', 8, 'Ispitivanje stabilnosti električnog kola broj 8.'),
+(9, 'Odziv je zabeležen i prihvatljiv. Redni broj ispitivanja: 9.', 9, 'Provera odziva električnog kola broj 9.'),
+(10, 'Ispitivanje je uspešno evidentirano. Redni broj ispitivanja: 10.', 10, 'Završna provera električnog kola broj 10.'),
+(11, 'Elementi su pravilno povezani. Redni broj ispitivanja: 11.', 11, 'Vizuelna provera električnog kola broj 11.'),
+(12, 'Rad je u očekivanim granicama. Redni broj ispitivanja: 12.', 12, 'Funkcionalno ispitivanje električnog kola broj 12.'),
+(13, 'Sistem radi stabilno tokom sesije. Redni broj ispitivanja: 13.', 13, 'Ispitivanje stabilnosti električnog kola broj 13.'),
+(14, 'Odziv je zabeležen i prihvatljiv. Redni broj ispitivanja: 14.', 14, 'Provera odziva električnog kola broj 14.'),
+(15, 'Ispitivanje je uspešno evidentirano. Redni broj ispitivanja: 15.', 15, 'Završna provera električnog kola broj 15.'),
+(16, 'Elementi su pravilno povezani. Redni broj ispitivanja: 16.', 16, 'Vizuelna provera električnog kola broj 16.'),
+(17, 'Rad je u očekivanim granicama. Redni broj ispitivanja: 17.', 17, 'Funkcionalno ispitivanje električnog kola broj 17.'),
+(18, 'Sistem radi stabilno tokom sesije. Redni broj ispitivanja: 18.', 18, 'Ispitivanje stabilnosti električnog kola broj 18.'),
+(19, 'Odziv je zabeležen i prihvatljiv. Redni broj ispitivanja: 19.', 19, 'Provera odziva električnog kola broj 19.'),
+(20, 'Ispitivanje je uspešno evidentirano. Redni broj ispitivanja: 20.', 20, 'Završna provera električnog kola broj 20.'),
+(21, 'Elementi su pravilno povezani. Redni broj ispitivanja: 21.', 1, 'Vizuelna provera električnog kola broj 21.'),
+(22, 'Rad je u očekivanim granicama. Redni broj ispitivanja: 22.', 2, 'Funkcionalno ispitivanje električnog kola broj 22.'),
+(23, 'Sistem radi stabilno tokom sesije. Redni broj ispitivanja: 23.', 3, 'Ispitivanje stabilnosti električnog kola broj 23.'),
+(24, 'Odziv je zabeležen i prihvatljiv. Redni broj ispitivanja: 24.', 4, 'Provera odziva električnog kola broj 24.'),
+(25, 'Ispitivanje je uspešno evidentirano. Redni broj ispitivanja: 25.', 5, 'Završna provera električnog kola broj 25.'),
+(26, 'Elementi su pravilno povezani. Redni broj ispitivanja: 26.', 6, 'Vizuelna provera električnog kola broj 26.'),
+(27, 'Rad je u očekivanim granicama. Redni broj ispitivanja: 27.', 7, 'Funkcionalno ispitivanje električnog kola broj 27.'),
+(28, 'Sistem radi stabilno tokom sesije. Redni broj ispitivanja: 28.', 8, 'Ispitivanje stabilnosti električnog kola broj 28.'),
+(29, 'Odziv je zabeležen i prihvatljiv. Redni broj ispitivanja: 29.', 9, 'Provera odziva električnog kola broj 29.'),
+(30, 'Ispitivanje je uspešno evidentirano. Redni broj ispitivanja: 30.', 10, 'Završna provera električnog kola broj 30.'),
+(31, 'Elementi su pravilno povezani. Redni broj ispitivanja: 31.', 11, 'Vizuelna provera električnog kola broj 31.'),
+(32, 'Rad je u očekivanim granicama. Redni broj ispitivanja: 32.', 12, 'Funkcionalno ispitivanje električnog kola broj 32.'),
+(33, 'Sistem radi stabilno tokom sesije. Redni broj ispitivanja: 33.', 13, 'Ispitivanje stabilnosti električnog kola broj 33.'),
+(34, 'Odziv je zabeležen i prihvatljiv. Redni broj ispitivanja: 34.', 14, 'Provera odziva električnog kola broj 34.'),
+(35, 'Ispitivanje je uspešno evidentirano. Redni broj ispitivanja: 35.', 15, 'Završna provera električnog kola broj 35.'),
+(36, 'Elementi su pravilno povezani. Redni broj ispitivanja: 36.', 16, 'Vizuelna provera električnog kola broj 36.'),
+(37, 'Rad je u očekivanim granicama. Redni broj ispitivanja: 37.', 17, 'Funkcionalno ispitivanje električnog kola broj 37.'),
+(38, 'Sistem radi stabilno tokom sesije. Redni broj ispitivanja: 38.', 18, 'Ispitivanje stabilnosti električnog kola broj 38.'),
+(39, 'Odziv je zabeležen i prihvatljiv. Redni broj ispitivanja: 39.', 19, 'Provera odziva električnog kola broj 39.'),
+(40, 'Ispitivanje je uspešno evidentirano. Redni broj ispitivanja: 40.', 20, 'Završna provera električnog kola broj 40.'),
+(41, 'Elementi su pravilno povezani. Redni broj ispitivanja: 41.', 1, 'Vizuelna provera električnog kola broj 41.'),
+(42, 'Rad je u očekivanim granicama. Redni broj ispitivanja: 42.', 2, 'Funkcionalno ispitivanje električnog kola broj 42.'),
+(43, 'Sistem radi stabilno tokom sesije. Redni broj ispitivanja: 43.', 3, 'Ispitivanje stabilnosti električnog kola broj 43.'),
+(44, 'Odziv je zabeležen i prihvatljiv. Redni broj ispitivanja: 44.', 4, 'Provera odziva električnog kola broj 44.'),
+(45, 'Ispitivanje je uspešno evidentirano. Redni broj ispitivanja: 45.', 5, 'Završna provera električnog kola broj 45.'),
+(46, 'Elementi su pravilno povezani. Redni broj ispitivanja: 46.', 6, 'Vizuelna provera električnog kola broj 46.'),
+(47, 'Rad je u očekivanim granicama. Redni broj ispitivanja: 47.', 7, 'Funkcionalno ispitivanje električnog kola broj 47.'),
+(48, 'Sistem radi stabilno tokom sesije. Redni broj ispitivanja: 48.', 8, 'Ispitivanje stabilnosti električnog kola broj 48.'),
+(49, 'Odziv je zabeležen i prihvatljiv. Redni broj ispitivanja: 49.', 9, 'Provera odziva električnog kola broj 49.'),
+(50, 'Ispitivanje je uspešno evidentirano. Redni broj ispitivanja: 50.', 10, 'Završna provera električnog kola broj 50.'),
+(51, 'Elementi su pravilno povezani. Redni broj ispitivanja: 51.', 11, 'Vizuelna provera električnog kola broj 51.'),
+(52, 'Rad je u očekivanim granicama. Redni broj ispitivanja: 52.', 12, 'Funkcionalno ispitivanje električnog kola broj 52.'),
+(53, 'Sistem radi stabilno tokom sesije. Redni broj ispitivanja: 53.', 13, 'Ispitivanje stabilnosti električnog kola broj 53.'),
+(54, 'Odziv je zabeležen i prihvatljiv. Redni broj ispitivanja: 54.', 14, 'Provera odziva električnog kola broj 54.'),
+(55, 'Ispitivanje je uspešno evidentirano. Redni broj ispitivanja: 55.', 15, 'Završna provera električnog kola broj 55.'),
+(56, 'Elementi su pravilno povezani. Redni broj ispitivanja: 56.', 16, 'Vizuelna provera električnog kola broj 56.'),
+(57, 'Rad je u očekivanim granicama. Redni broj ispitivanja: 57.', 17, 'Funkcionalno ispitivanje električnog kola broj 57.'),
+(58, 'Sistem radi stabilno tokom sesije. Redni broj ispitivanja: 58.', 18, 'Ispitivanje stabilnosti električnog kola broj 58.'),
+(59, 'Odziv je zabeležen i prihvatljiv. Redni broj ispitivanja: 59.', 19, 'Provera odziva električnog kola broj 59.'),
+(60, 'Ispitivanje je uspešno evidentirano. Redni broj ispitivanja: 60.', 20, 'Završna provera električnog kola broj 60.'),
+(61, 'Elementi su pravilno povezani. Redni broj ispitivanja: 61.', 1, 'Vizuelna provera električnog kola broj 61.'),
+(62, 'Rad je u očekivanim granicama. Redni broj ispitivanja: 62.', 2, 'Funkcionalno ispitivanje električnog kola broj 62.'),
+(63, 'Sistem radi stabilno tokom sesije. Redni broj ispitivanja: 63.', 3, 'Ispitivanje stabilnosti električnog kola broj 63.'),
+(64, 'Odziv je zabeležen i prihvatljiv. Redni broj ispitivanja: 64.', 4, 'Provera odziva električnog kola broj 64.'),
+(65, 'Ispitivanje je uspešno evidentirano. Redni broj ispitivanja: 65.', 5, 'Završna provera električnog kola broj 65.'),
+(66, 'Elementi su pravilno povezani. Redni broj ispitivanja: 66.', 6, 'Vizuelna provera električnog kola broj 66.'),
+(67, 'Rad je u očekivanim granicama. Redni broj ispitivanja: 67.', 7, 'Funkcionalno ispitivanje električnog kola broj 67.'),
+(68, 'Sistem radi stabilno tokom sesije. Redni broj ispitivanja: 68.', 8, 'Ispitivanje stabilnosti električnog kola broj 68.'),
+(69, 'Odziv je zabeležen i prihvatljiv. Redni broj ispitivanja: 69.', 9, 'Provera odziva električnog kola broj 69.'),
+(70, 'Ispitivanje je uspešno evidentirano. Redni broj ispitivanja: 70.', 10, 'Završna provera električnog kola broj 70.'),
+(71, 'Elementi su pravilno povezani. Redni broj ispitivanja: 71.', 11, 'Vizuelna provera električnog kola broj 71.'),
+(72, 'Rad je u očekivanim granicama. Redni broj ispitivanja: 72.', 12, 'Funkcionalno ispitivanje električnog kola broj 72.'),
+(73, 'Sistem radi stabilno tokom sesije. Redni broj ispitivanja: 73.', 13, 'Ispitivanje stabilnosti električnog kola broj 73.'),
+(74, 'Odziv je zabeležen i prihvatljiv. Redni broj ispitivanja: 74.', 14, 'Provera odziva električnog kola broj 74.'),
+(75, 'Ispitivanje je uspešno evidentirano. Redni broj ispitivanja: 75.', 15, 'Završna provera električnog kola broj 75.'),
+(76, 'Elementi su pravilno povezani. Redni broj ispitivanja: 76.', 16, 'Vizuelna provera električnog kola broj 76.'),
+(77, 'Rad je u očekivanim granicama. Redni broj ispitivanja: 77.', 17, 'Funkcionalno ispitivanje električnog kola broj 77.'),
+(78, 'Sistem radi stabilno tokom sesije. Redni broj ispitivanja: 78.', 18, 'Ispitivanje stabilnosti električnog kola broj 78.'),
+(79, 'Odziv je zabeležen i prihvatljiv. Redni broj ispitivanja: 79.', 19, 'Provera odziva električnog kola broj 79.'),
+(80, 'Ispitivanje je uspešno evidentirano. Redni broj ispitivanja: 80.', 20, 'Završna provera električnog kola broj 80.'),
+(81, 'Elementi su pravilno povezani. Redni broj ispitivanja: 81.', 1, 'Vizuelna provera električnog kola broj 81.'),
+(82, 'Rad je u očekivanim granicama. Redni broj ispitivanja: 82.', 2, 'Funkcionalno ispitivanje električnog kola broj 82.'),
+(83, 'Sistem radi stabilno tokom sesije. Redni broj ispitivanja: 83.', 3, 'Ispitivanje stabilnosti električnog kola broj 83.'),
+(84, 'Odziv je zabeležen i prihvatljiv. Redni broj ispitivanja: 84.', 4, 'Provera odziva električnog kola broj 84.'),
+(85, 'Ispitivanje je uspešno evidentirano. Redni broj ispitivanja: 85.', 5, 'Završna provera električnog kola broj 85.'),
+(86, 'Elementi su pravilno povezani. Redni broj ispitivanja: 86.', 6, 'Vizuelna provera električnog kola broj 86.'),
+(87, 'Rad je u očekivanim granicama. Redni broj ispitivanja: 87.', 7, 'Funkcionalno ispitivanje električnog kola broj 87.'),
+(88, 'Sistem radi stabilno tokom sesije. Redni broj ispitivanja: 88.', 8, 'Ispitivanje stabilnosti električnog kola broj 88.'),
+(89, 'Odziv je zabeležen i prihvatljiv. Redni broj ispitivanja: 89.', 9, 'Provera odziva električnog kola broj 89.'),
+(90, 'Ispitivanje je uspešno evidentirano. Redni broj ispitivanja: 90.', 10, 'Završna provera električnog kola broj 90.'),
+(91, 'Elementi su pravilno povezani. Redni broj ispitivanja: 91.', 11, 'Vizuelna provera električnog kola broj 91.'),
+(92, 'Rad je u očekivanim granicama. Redni broj ispitivanja: 92.', 12, 'Funkcionalno ispitivanje električnog kola broj 92.'),
+(93, 'Sistem radi stabilno tokom sesije. Redni broj ispitivanja: 93.', 13, 'Ispitivanje stabilnosti električnog kola broj 93.'),
+(94, 'Odziv je zabeležen i prihvatljiv. Redni broj ispitivanja: 94.', 14, 'Provera odziva električnog kola broj 94.'),
+(95, 'Ispitivanje je uspešno evidentirano. Redni broj ispitivanja: 95.', 15, 'Završna provera električnog kola broj 95.'),
+(96, 'Elementi su pravilno povezani. Redni broj ispitivanja: 96.', 16, 'Vizuelna provera električnog kola broj 96.'),
+(97, 'Rad je u očekivanim granicama. Redni broj ispitivanja: 97.', 17, 'Funkcionalno ispitivanje električnog kola broj 97.'),
+(98, 'Sistem radi stabilno tokom sesije. Redni broj ispitivanja: 98.', 18, 'Ispitivanje stabilnosti električnog kola broj 98.'),
+(99, 'Odziv je zabeležen i prihvatljiv. Redni broj ispitivanja: 99.', 19, 'Provera odziva električnog kola broj 99.'),
+(100, 'Ispitivanje je uspešno evidentirano. Redni broj ispitivanja: 100.', 20, 'Završna provera električnog kola broj 100.'),
+(101, 'Elementi su pravilno povezani. Redni broj ispitivanja: 101.', 1, 'Vizuelna provera senzora broj 101.'),
+(102, 'Rad je u očekivanim granicama. Redni broj ispitivanja: 102.', 2, 'Funkcionalno ispitivanje senzora broj 102.'),
+(103, 'Sistem radi stabilno tokom sesije. Redni broj ispitivanja: 103.', 3, 'Ispitivanje stabilnosti senzora broj 103.'),
+(104, 'Odziv je zabeležen i prihvatljiv. Redni broj ispitivanja: 104.', 4, 'Provera odziva senzora broj 104.'),
+(105, 'Ispitivanje je uspešno evidentirano. Redni broj ispitivanja: 105.', 5, 'Završna provera senzora broj 105.'),
+(106, 'Elementi su pravilno povezani. Redni broj ispitivanja: 106.', 6, 'Vizuelna provera senzora broj 106.'),
+(107, 'Rad je u očekivanim granicama. Redni broj ispitivanja: 107.', 7, 'Funkcionalno ispitivanje senzora broj 107.'),
+(108, 'Sistem radi stabilno tokom sesije. Redni broj ispitivanja: 108.', 8, 'Ispitivanje stabilnosti senzora broj 108.'),
+(109, 'Odziv je zabeležen i prihvatljiv. Redni broj ispitivanja: 109.', 9, 'Provera odziva senzora broj 109.'),
+(110, 'Ispitivanje je uspešno evidentirano. Redni broj ispitivanja: 110.', 10, 'Završna provera senzora broj 110.'),
+(111, 'Elementi su pravilno povezani. Redni broj ispitivanja: 111.', 11, 'Vizuelna provera senzora broj 111.'),
+(112, 'Rad je u očekivanim granicama. Redni broj ispitivanja: 112.', 12, 'Funkcionalno ispitivanje senzora broj 112.'),
+(113, 'Sistem radi stabilno tokom sesije. Redni broj ispitivanja: 113.', 13, 'Ispitivanje stabilnosti senzora broj 113.'),
+(114, 'Odziv je zabeležen i prihvatljiv. Redni broj ispitivanja: 114.', 14, 'Provera odziva senzora broj 114.'),
+(115, 'Ispitivanje je uspešno evidentirano. Redni broj ispitivanja: 115.', 15, 'Završna provera senzora broj 115.'),
+(116, 'Elementi su pravilno povezani. Redni broj ispitivanja: 116.', 16, 'Vizuelna provera senzora broj 116.'),
+(117, 'Rad je u očekivanim granicama. Redni broj ispitivanja: 117.', 17, 'Funkcionalno ispitivanje senzora broj 117.'),
+(118, 'Sistem radi stabilno tokom sesije. Redni broj ispitivanja: 118.', 18, 'Ispitivanje stabilnosti senzora broj 118.'),
+(119, 'Odziv je zabeležen i prihvatljiv. Redni broj ispitivanja: 119.', 19, 'Provera odziva senzora broj 119.'),
+(120, 'Ispitivanje je uspešno evidentirano. Redni broj ispitivanja: 120.', 20, 'Završna provera senzora broj 120.'),
+(121, 'Elementi su pravilno povezani. Redni broj ispitivanja: 121.', 1, 'Vizuelna provera senzora broj 121.'),
+(122, 'Rad je u očekivanim granicama. Redni broj ispitivanja: 122.', 2, 'Funkcionalno ispitivanje senzora broj 122.'),
+(123, 'Sistem radi stabilno tokom sesije. Redni broj ispitivanja: 123.', 3, 'Ispitivanje stabilnosti senzora broj 123.'),
+(124, 'Odziv je zabeležen i prihvatljiv. Redni broj ispitivanja: 124.', 4, 'Provera odziva senzora broj 124.'),
+(125, 'Ispitivanje je uspešno evidentirano. Redni broj ispitivanja: 125.', 5, 'Završna provera senzora broj 125.'),
+(126, 'Elementi su pravilno povezani. Redni broj ispitivanja: 126.', 6, 'Vizuelna provera senzora broj 126.'),
+(127, 'Rad je u očekivanim granicama. Redni broj ispitivanja: 127.', 7, 'Funkcionalno ispitivanje senzora broj 127.'),
+(128, 'Sistem radi stabilno tokom sesije. Redni broj ispitivanja: 128.', 8, 'Ispitivanje stabilnosti senzora broj 128.'),
+(129, 'Odziv je zabeležen i prihvatljiv. Redni broj ispitivanja: 129.', 9, 'Provera odziva senzora broj 129.'),
+(130, 'Ispitivanje je uspešno evidentirano. Redni broj ispitivanja: 130.', 10, 'Završna provera senzora broj 130.'),
+(131, 'Elementi su pravilno povezani. Redni broj ispitivanja: 131.', 11, 'Vizuelna provera senzora broj 131.'),
+(132, 'Rad je u očekivanim granicama. Redni broj ispitivanja: 132.', 12, 'Funkcionalno ispitivanje senzora broj 132.'),
+(133, 'Sistem radi stabilno tokom sesije. Redni broj ispitivanja: 133.', 13, 'Ispitivanje stabilnosti senzora broj 133.'),
+(134, 'Odziv je zabeležen i prihvatljiv. Redni broj ispitivanja: 134.', 14, 'Provera odziva senzora broj 134.'),
+(135, 'Ispitivanje je uspešno evidentirano. Redni broj ispitivanja: 135.', 15, 'Završna provera senzora broj 135.'),
+(136, 'Elementi su pravilno povezani. Redni broj ispitivanja: 136.', 16, 'Vizuelna provera senzora broj 136.'),
+(137, 'Rad je u očekivanim granicama. Redni broj ispitivanja: 137.', 17, 'Funkcionalno ispitivanje senzora broj 137.'),
+(138, 'Sistem radi stabilno tokom sesije. Redni broj ispitivanja: 138.', 18, 'Ispitivanje stabilnosti senzora broj 138.'),
+(139, 'Odziv je zabeležen i prihvatljiv. Redni broj ispitivanja: 139.', 19, 'Provera odziva senzora broj 139.'),
+(140, 'Ispitivanje je uspešno evidentirano. Redni broj ispitivanja: 140.', 20, 'Završna provera senzora broj 140.'),
+(141, 'Elementi su pravilno povezani. Redni broj ispitivanja: 141.', 1, 'Vizuelna provera senzora broj 141.'),
+(142, 'Rad je u očekivanim granicama. Redni broj ispitivanja: 142.', 2, 'Funkcionalno ispitivanje senzora broj 142.'),
+(143, 'Sistem radi stabilno tokom sesije. Redni broj ispitivanja: 143.', 3, 'Ispitivanje stabilnosti senzora broj 143.'),
+(144, 'Odziv je zabeležen i prihvatljiv. Redni broj ispitivanja: 144.', 4, 'Provera odziva senzora broj 144.'),
+(145, 'Ispitivanje je uspešno evidentirano. Redni broj ispitivanja: 145.', 5, 'Završna provera senzora broj 145.'),
+(146, 'Elementi su pravilno povezani. Redni broj ispitivanja: 146.', 6, 'Vizuelna provera senzora broj 146.'),
+(147, 'Rad je u očekivanim granicama. Redni broj ispitivanja: 147.', 7, 'Funkcionalno ispitivanje senzora broj 147.'),
+(148, 'Sistem radi stabilno tokom sesije. Redni broj ispitivanja: 148.', 8, 'Ispitivanje stabilnosti senzora broj 148.'),
+(149, 'Odziv je zabeležen i prihvatljiv. Redni broj ispitivanja: 149.', 9, 'Provera odziva senzora broj 149.'),
+(150, 'Ispitivanje je uspešno evidentirano. Redni broj ispitivanja: 150.', 10, 'Završna provera senzora broj 150.'),
+(151, 'Elementi su pravilno povezani. Redni broj ispitivanja: 151.', 11, 'Vizuelna provera senzora broj 151.'),
+(152, 'Rad je u očekivanim granicama. Redni broj ispitivanja: 152.', 12, 'Funkcionalno ispitivanje senzora broj 152.'),
+(153, 'Sistem radi stabilno tokom sesije. Redni broj ispitivanja: 153.', 13, 'Ispitivanje stabilnosti senzora broj 153.'),
+(154, 'Odziv je zabeležen i prihvatljiv. Redni broj ispitivanja: 154.', 14, 'Provera odziva senzora broj 154.'),
+(155, 'Ispitivanje je uspešno evidentirano. Redni broj ispitivanja: 155.', 15, 'Završna provera senzora broj 155.'),
+(156, 'Elementi su pravilno povezani. Redni broj ispitivanja: 156.', 16, 'Vizuelna provera senzora broj 156.'),
+(157, 'Rad je u očekivanim granicama. Redni broj ispitivanja: 157.', 17, 'Funkcionalno ispitivanje senzora broj 157.'),
+(158, 'Sistem radi stabilno tokom sesije. Redni broj ispitivanja: 158.', 18, 'Ispitivanje stabilnosti senzora broj 158.'),
+(159, 'Odziv je zabeležen i prihvatljiv. Redni broj ispitivanja: 159.', 19, 'Provera odziva senzora broj 159.'),
+(160, 'Ispitivanje je uspešno evidentirano. Redni broj ispitivanja: 160.', 20, 'Završna provera senzora broj 160.'),
+(161, 'Elementi su pravilno povezani. Redni broj ispitivanja: 161.', 1, 'Vizuelna provera senzora broj 161.'),
+(162, 'Rad je u očekivanim granicama. Redni broj ispitivanja: 162.', 2, 'Funkcionalno ispitivanje senzora broj 162.'),
+(163, 'Sistem radi stabilno tokom sesije. Redni broj ispitivanja: 163.', 3, 'Ispitivanje stabilnosti senzora broj 163.'),
+(164, 'Odziv je zabeležen i prihvatljiv. Redni broj ispitivanja: 164.', 4, 'Provera odziva senzora broj 164.'),
+(165, 'Ispitivanje je uspešno evidentirano. Redni broj ispitivanja: 165.', 5, 'Završna provera senzora broj 165.'),
+(166, 'Elementi su pravilno povezani. Redni broj ispitivanja: 166.', 6, 'Vizuelna provera senzora broj 166.'),
+(167, 'Rad je u očekivanim granicama. Redni broj ispitivanja: 167.', 7, 'Funkcionalno ispitivanje senzora broj 167.'),
+(168, 'Sistem radi stabilno tokom sesije. Redni broj ispitivanja: 168.', 8, 'Ispitivanje stabilnosti senzora broj 168.'),
+(169, 'Odziv je zabeležen i prihvatljiv. Redni broj ispitivanja: 169.', 9, 'Provera odziva senzora broj 169.'),
+(170, 'Ispitivanje je uspešno evidentirano. Redni broj ispitivanja: 170.', 10, 'Završna provera senzora broj 170.'),
+(171, 'Elementi su pravilno povezani. Redni broj ispitivanja: 171.', 11, 'Vizuelna provera senzora broj 171.'),
+(172, 'Rad je u očekivanim granicama. Redni broj ispitivanja: 172.', 12, 'Funkcionalno ispitivanje senzora broj 172.'),
+(173, 'Sistem radi stabilno tokom sesije. Redni broj ispitivanja: 173.', 13, 'Ispitivanje stabilnosti senzora broj 173.'),
+(174, 'Odziv je zabeležen i prihvatljiv. Redni broj ispitivanja: 174.', 14, 'Provera odziva senzora broj 174.'),
+(175, 'Ispitivanje je uspešno evidentirano. Redni broj ispitivanja: 175.', 15, 'Završna provera senzora broj 175.'),
+(176, 'Elementi su pravilno povezani. Redni broj ispitivanja: 176.', 16, 'Vizuelna provera senzora broj 176.'),
+(177, 'Rad je u očekivanim granicama. Redni broj ispitivanja: 177.', 17, 'Funkcionalno ispitivanje senzora broj 177.'),
+(178, 'Sistem radi stabilno tokom sesije. Redni broj ispitivanja: 178.', 18, 'Ispitivanje stabilnosti senzora broj 178.'),
+(179, 'Odziv je zabeležen i prihvatljiv. Redni broj ispitivanja: 179.', 19, 'Provera odziva senzora broj 179.'),
+(180, 'Ispitivanje je uspešno evidentirano. Redni broj ispitivanja: 180.', 20, 'Završna provera senzora broj 180.'),
+(181, 'Elementi su pravilno povezani. Redni broj ispitivanja: 181.', 1, 'Vizuelna provera senzora broj 181.'),
+(182, 'Rad je u očekivanim granicama. Redni broj ispitivanja: 182.', 2, 'Funkcionalno ispitivanje senzora broj 182.'),
+(183, 'Sistem radi stabilno tokom sesije. Redni broj ispitivanja: 183.', 3, 'Ispitivanje stabilnosti senzora broj 183.'),
+(184, 'Odziv je zabeležen i prihvatljiv. Redni broj ispitivanja: 184.', 4, 'Provera odziva senzora broj 184.'),
+(185, 'Ispitivanje je uspešno evidentirano. Redni broj ispitivanja: 185.', 5, 'Završna provera senzora broj 185.'),
+(186, 'Elementi su pravilno povezani. Redni broj ispitivanja: 186.', 6, 'Vizuelna provera senzora broj 186.'),
+(187, 'Rad je u očekivanim granicama. Redni broj ispitivanja: 187.', 7, 'Funkcionalno ispitivanje senzora broj 187.'),
+(188, 'Sistem radi stabilno tokom sesije. Redni broj ispitivanja: 188.', 8, 'Ispitivanje stabilnosti senzora broj 188.'),
+(189, 'Odziv je zabeležen i prihvatljiv. Redni broj ispitivanja: 189.', 9, 'Provera odziva senzora broj 189.'),
+(190, 'Ispitivanje je uspešno evidentirano. Redni broj ispitivanja: 190.', 10, 'Završna provera senzora broj 190.'),
+(191, 'Elementi su pravilno povezani. Redni broj ispitivanja: 191.', 11, 'Vizuelna provera senzora broj 191.'),
+(192, 'Rad je u očekivanim granicama. Redni broj ispitivanja: 192.', 12, 'Funkcionalno ispitivanje senzora broj 192.'),
+(193, 'Sistem radi stabilno tokom sesije. Redni broj ispitivanja: 193.', 13, 'Ispitivanje stabilnosti senzora broj 193.'),
+(194, 'Odziv je zabeležen i prihvatljiv. Redni broj ispitivanja: 194.', 14, 'Provera odziva senzora broj 194.'),
+(195, 'Ispitivanje je uspešno evidentirano. Redni broj ispitivanja: 195.', 15, 'Završna provera senzora broj 195.'),
+(196, 'Elementi su pravilno povezani. Redni broj ispitivanja: 196.', 16, 'Vizuelna provera senzora broj 196.'),
+(197, 'Rad je u očekivanim granicama. Redni broj ispitivanja: 197.', 17, 'Funkcionalno ispitivanje senzora broj 197.'),
+(198, 'Sistem radi stabilno tokom sesije. Redni broj ispitivanja: 198.', 18, 'Ispitivanje stabilnosti senzora broj 198.'),
+(199, 'Odziv je zabeležen i prihvatljiv. Redni broj ispitivanja: 199.', 19, 'Provera odziva senzora broj 199.'),
+(200, 'Ispitivanje je uspešno evidentirano. Redni broj ispitivanja: 200.', 20, 'Završna provera senzora broj 200.'),
+(201, 'Elementi su pravilno povezani. Redni broj ispitivanja: 201.', 1, 'Vizuelna provera prototipa broj 201.'),
+(202, 'Rad je u očekivanim granicama. Redni broj ispitivanja: 202.', 2, 'Funkcionalno ispitivanje prototipa broj 202.'),
+(203, 'Sistem radi stabilno tokom sesije. Redni broj ispitivanja: 203.', 3, 'Ispitivanje stabilnosti prototipa broj 203.'),
+(204, 'Odziv je zabeležen i prihvatljiv. Redni broj ispitivanja: 204.', 4, 'Provera odziva prototipa broj 204.'),
+(205, 'Ispitivanje je uspešno evidentirano. Redni broj ispitivanja: 205.', 5, 'Završna provera prototipa broj 205.'),
+(206, 'Elementi su pravilno povezani. Redni broj ispitivanja: 206.', 6, 'Vizuelna provera prototipa broj 206.'),
+(207, 'Rad je u očekivanim granicama. Redni broj ispitivanja: 207.', 7, 'Funkcionalno ispitivanje prototipa broj 207.'),
+(208, 'Sistem radi stabilno tokom sesije. Redni broj ispitivanja: 208.', 8, 'Ispitivanje stabilnosti prototipa broj 208.'),
+(209, 'Odziv je zabeležen i prihvatljiv. Redni broj ispitivanja: 209.', 9, 'Provera odziva prototipa broj 209.'),
+(210, 'Ispitivanje je uspešno evidentirano. Redni broj ispitivanja: 210.', 10, 'Završna provera prototipa broj 210.'),
+(211, 'Elementi su pravilno povezani. Redni broj ispitivanja: 211.', 11, 'Vizuelna provera prototipa broj 211.'),
+(212, 'Rad je u očekivanim granicama. Redni broj ispitivanja: 212.', 12, 'Funkcionalno ispitivanje prototipa broj 212.'),
+(213, 'Sistem radi stabilno tokom sesije. Redni broj ispitivanja: 213.', 13, 'Ispitivanje stabilnosti prototipa broj 213.'),
+(214, 'Odziv je zabeležen i prihvatljiv. Redni broj ispitivanja: 214.', 14, 'Provera odziva prototipa broj 214.'),
+(215, 'Ispitivanje je uspešno evidentirano. Redni broj ispitivanja: 215.', 15, 'Završna provera prototipa broj 215.'),
+(216, 'Elementi su pravilno povezani. Redni broj ispitivanja: 216.', 16, 'Vizuelna provera prototipa broj 216.'),
+(217, 'Rad je u očekivanim granicama. Redni broj ispitivanja: 217.', 17, 'Funkcionalno ispitivanje prototipa broj 217.'),
+(218, 'Sistem radi stabilno tokom sesije. Redni broj ispitivanja: 218.', 18, 'Ispitivanje stabilnosti prototipa broj 218.'),
+(219, 'Odziv je zabeležen i prihvatljiv. Redni broj ispitivanja: 219.', 19, 'Provera odziva prototipa broj 219.'),
+(220, 'Ispitivanje je uspešno evidentirano. Redni broj ispitivanja: 220.', 20, 'Završna provera prototipa broj 220.'),
+(221, 'Elementi su pravilno povezani. Redni broj ispitivanja: 221.', 1, 'Vizuelna provera prototipa broj 221.'),
+(222, 'Rad je u očekivanim granicama. Redni broj ispitivanja: 222.', 2, 'Funkcionalno ispitivanje prototipa broj 222.'),
+(223, 'Sistem radi stabilno tokom sesije. Redni broj ispitivanja: 223.', 3, 'Ispitivanje stabilnosti prototipa broj 223.'),
+(224, 'Odziv je zabeležen i prihvatljiv. Redni broj ispitivanja: 224.', 4, 'Provera odziva prototipa broj 224.'),
+(225, 'Ispitivanje je uspešno evidentirano. Redni broj ispitivanja: 225.', 5, 'Završna provera prototipa broj 225.'),
+(226, 'Elementi su pravilno povezani. Redni broj ispitivanja: 226.', 6, 'Vizuelna provera prototipa broj 226.'),
+(227, 'Rad je u očekivanim granicama. Redni broj ispitivanja: 227.', 7, 'Funkcionalno ispitivanje prototipa broj 227.'),
+(228, 'Sistem radi stabilno tokom sesije. Redni broj ispitivanja: 228.', 8, 'Ispitivanje stabilnosti prototipa broj 228.'),
+(229, 'Odziv je zabeležen i prihvatljiv. Redni broj ispitivanja: 229.', 9, 'Provera odziva prototipa broj 229.'),
+(230, 'Ispitivanje je uspešno evidentirano. Redni broj ispitivanja: 230.', 10, 'Završna provera prototipa broj 230.'),
+(231, 'Elementi su pravilno povezani. Redni broj ispitivanja: 231.', 11, 'Vizuelna provera prototipa broj 231.'),
+(232, 'Rad je u očekivanim granicama. Redni broj ispitivanja: 232.', 12, 'Funkcionalno ispitivanje prototipa broj 232.'),
+(233, 'Sistem radi stabilno tokom sesije. Redni broj ispitivanja: 233.', 13, 'Ispitivanje stabilnosti prototipa broj 233.'),
+(234, 'Odziv je zabeležen i prihvatljiv. Redni broj ispitivanja: 234.', 14, 'Provera odziva prototipa broj 234.'),
+(235, 'Ispitivanje je uspešno evidentirano. Redni broj ispitivanja: 235.', 15, 'Završna provera prototipa broj 235.'),
+(236, 'Elementi su pravilno povezani. Redni broj ispitivanja: 236.', 16, 'Vizuelna provera prototipa broj 236.'),
+(237, 'Rad je u očekivanim granicama. Redni broj ispitivanja: 237.', 17, 'Funkcionalno ispitivanje prototipa broj 237.'),
+(238, 'Sistem radi stabilno tokom sesije. Redni broj ispitivanja: 238.', 18, 'Ispitivanje stabilnosti prototipa broj 238.'),
+(239, 'Odziv je zabeležen i prihvatljiv. Redni broj ispitivanja: 239.', 19, 'Provera odziva prototipa broj 239.'),
+(240, 'Ispitivanje je uspešno evidentirano. Redni broj ispitivanja: 240.', 20, 'Završna provera prototipa broj 240.'),
+(241, 'Elementi su pravilno povezani. Redni broj ispitivanja: 241.', 1, 'Vizuelna provera prototipa broj 241.'),
+(242, 'Rad je u očekivanim granicama. Redni broj ispitivanja: 242.', 2, 'Funkcionalno ispitivanje prototipa broj 242.'),
+(243, 'Sistem radi stabilno tokom sesije. Redni broj ispitivanja: 243.', 3, 'Ispitivanje stabilnosti prototipa broj 243.'),
+(244, 'Odziv je zabeležen i prihvatljiv. Redni broj ispitivanja: 244.', 4, 'Provera odziva prototipa broj 244.'),
+(245, 'Ispitivanje je uspešno evidentirano. Redni broj ispitivanja: 245.', 5, 'Završna provera prototipa broj 245.'),
+(246, 'Elementi su pravilno povezani. Redni broj ispitivanja: 246.', 6, 'Vizuelna provera prototipa broj 246.'),
+(247, 'Rad je u očekivanim granicama. Redni broj ispitivanja: 247.', 7, 'Funkcionalno ispitivanje prototipa broj 247.'),
+(248, 'Sistem radi stabilno tokom sesije. Redni broj ispitivanja: 248.', 8, 'Ispitivanje stabilnosti prototipa broj 248.'),
+(249, 'Odziv je zabeležen i prihvatljiv. Redni broj ispitivanja: 249.', 9, 'Provera odziva prototipa broj 249.'),
+(250, 'Ispitivanje je uspešno evidentirano. Redni broj ispitivanja: 250.', 10, 'Završna provera prototipa broj 250.'),
+(251, 'Elementi su pravilno povezani. Redni broj ispitivanja: 251.', 11, 'Vizuelna provera prototipa broj 251.'),
+(252, 'Rad je u očekivanim granicama. Redni broj ispitivanja: 252.', 12, 'Funkcionalno ispitivanje prototipa broj 252.'),
+(253, 'Sistem radi stabilno tokom sesije. Redni broj ispitivanja: 253.', 13, 'Ispitivanje stabilnosti prototipa broj 253.'),
+(254, 'Odziv je zabeležen i prihvatljiv. Redni broj ispitivanja: 254.', 14, 'Provera odziva prototipa broj 254.'),
+(255, 'Ispitivanje je uspešno evidentirano. Redni broj ispitivanja: 255.', 15, 'Završna provera prototipa broj 255.'),
+(256, 'Elementi su pravilno povezani. Redni broj ispitivanja: 256.', 16, 'Vizuelna provera prototipa broj 256.'),
+(257, 'Rad je u očekivanim granicama. Redni broj ispitivanja: 257.', 17, 'Funkcionalno ispitivanje prototipa broj 257.'),
+(258, 'Sistem radi stabilno tokom sesije. Redni broj ispitivanja: 258.', 18, 'Ispitivanje stabilnosti prototipa broj 258.'),
+(259, 'Odziv je zabeležen i prihvatljiv. Redni broj ispitivanja: 259.', 19, 'Provera odziva prototipa broj 259.'),
+(260, 'Ispitivanje je uspešno evidentirano. Redni broj ispitivanja: 260.', 20, 'Završna provera prototipa broj 260.'),
+(261, 'Elementi su pravilno povezani. Redni broj ispitivanja: 261.', 1, 'Vizuelna provera prototipa broj 261.'),
+(262, 'Rad je u očekivanim granicama. Redni broj ispitivanja: 262.', 2, 'Funkcionalno ispitivanje prototipa broj 262.'),
+(263, 'Sistem radi stabilno tokom sesije. Redni broj ispitivanja: 263.', 3, 'Ispitivanje stabilnosti prototipa broj 263.'),
+(264, 'Odziv je zabeležen i prihvatljiv. Redni broj ispitivanja: 264.', 4, 'Provera odziva prototipa broj 264.'),
+(265, 'Ispitivanje je uspešno evidentirano. Redni broj ispitivanja: 265.', 5, 'Završna provera prototipa broj 265.'),
+(266, 'Elementi su pravilno povezani. Redni broj ispitivanja: 266.', 6, 'Vizuelna provera prototipa broj 266.'),
+(267, 'Rad je u očekivanim granicama. Redni broj ispitivanja: 267.', 7, 'Funkcionalno ispitivanje prototipa broj 267.'),
+(268, 'Sistem radi stabilno tokom sesije. Redni broj ispitivanja: 268.', 8, 'Ispitivanje stabilnosti prototipa broj 268.'),
+(269, 'Odziv je zabeležen i prihvatljiv. Redni broj ispitivanja: 269.', 9, 'Provera odziva prototipa broj 269.'),
+(270, 'Ispitivanje je uspešno evidentirano. Redni broj ispitivanja: 270.', 10, 'Završna provera prototipa broj 270.'),
+(271, 'Elementi su pravilno povezani. Redni broj ispitivanja: 271.', 11, 'Vizuelna provera prototipa broj 271.'),
+(272, 'Rad je u očekivanim granicama. Redni broj ispitivanja: 272.', 12, 'Funkcionalno ispitivanje prototipa broj 272.'),
+(273, 'Sistem radi stabilno tokom sesije. Redni broj ispitivanja: 273.', 13, 'Ispitivanje stabilnosti prototipa broj 273.'),
+(274, 'Odziv je zabeležen i prihvatljiv. Redni broj ispitivanja: 274.', 14, 'Provera odziva prototipa broj 274.'),
+(275, 'Ispitivanje je uspešno evidentirano. Redni broj ispitivanja: 275.', 15, 'Završna provera prototipa broj 275.'),
+(276, 'Elementi su pravilno povezani. Redni broj ispitivanja: 276.', 16, 'Vizuelna provera prototipa broj 276.'),
+(277, 'Rad je u očekivanim granicama. Redni broj ispitivanja: 277.', 17, 'Funkcionalno ispitivanje prototipa broj 277.'),
+(278, 'Sistem radi stabilno tokom sesije. Redni broj ispitivanja: 278.', 18, 'Ispitivanje stabilnosti prototipa broj 278.'),
+(279, 'Odziv je zabeležen i prihvatljiv. Redni broj ispitivanja: 279.', 19, 'Provera odziva prototipa broj 279.'),
+(280, 'Ispitivanje je uspešno evidentirano. Redni broj ispitivanja: 280.', 20, 'Završna provera prototipa broj 280.'),
+(281, 'Elementi su pravilno povezani. Redni broj ispitivanja: 281.', 1, 'Vizuelna provera prototipa broj 281.'),
+(282, 'Rad je u očekivanim granicama. Redni broj ispitivanja: 282.', 2, 'Funkcionalno ispitivanje prototipa broj 282.'),
+(283, 'Sistem radi stabilno tokom sesije. Redni broj ispitivanja: 283.', 3, 'Ispitivanje stabilnosti prototipa broj 283.'),
+(284, 'Odziv je zabeležen i prihvatljiv. Redni broj ispitivanja: 284.', 4, 'Provera odziva prototipa broj 284.'),
+(285, 'Ispitivanje je uspešno evidentirano. Redni broj ispitivanja: 285.', 5, 'Završna provera prototipa broj 285.'),
+(286, 'Elementi su pravilno povezani. Redni broj ispitivanja: 286.', 6, 'Vizuelna provera prototipa broj 286.'),
+(287, 'Rad je u očekivanim granicama. Redni broj ispitivanja: 287.', 7, 'Funkcionalno ispitivanje prototipa broj 287.'),
+(288, 'Sistem radi stabilno tokom sesije. Redni broj ispitivanja: 288.', 8, 'Ispitivanje stabilnosti prototipa broj 288.'),
+(289, 'Odziv je zabeležen i prihvatljiv. Redni broj ispitivanja: 289.', 9, 'Provera odziva prototipa broj 289.'),
+(290, 'Ispitivanje je uspešno evidentirano. Redni broj ispitivanja: 290.', 10, 'Završna provera prototipa broj 290.'),
+(291, 'Elementi su pravilno povezani. Redni broj ispitivanja: 291.', 11, 'Vizuelna provera prototipa broj 291.'),
+(292, 'Rad je u očekivanim granicama. Redni broj ispitivanja: 292.', 12, 'Funkcionalno ispitivanje prototipa broj 292.'),
+(293, 'Sistem radi stabilno tokom sesije. Redni broj ispitivanja: 293.', 13, 'Ispitivanje stabilnosti prototipa broj 293.'),
+(294, 'Odziv je zabeležen i prihvatljiv. Redni broj ispitivanja: 294.', 14, 'Provera odziva prototipa broj 294.'),
+(295, 'Ispitivanje je uspešno evidentirano. Redni broj ispitivanja: 295.', 15, 'Završna provera prototipa broj 295.'),
+(296, 'Elementi su pravilno povezani. Redni broj ispitivanja: 296.', 16, 'Vizuelna provera prototipa broj 296.'),
+(297, 'Rad je u očekivanim granicama. Redni broj ispitivanja: 297.', 17, 'Funkcionalno ispitivanje prototipa broj 297.'),
+(298, 'Sistem radi stabilno tokom sesije. Redni broj ispitivanja: 298.', 18, 'Ispitivanje stabilnosti prototipa broj 298.'),
+(299, 'Odziv je zabeležen i prihvatljiv. Redni broj ispitivanja: 299.', 19, 'Provera odziva prototipa broj 299.'),
+(300, 'Ispitivanje je uspešno evidentirano. Redni broj ispitivanja: 300.', 20, 'Završna provera prototipa broj 300.');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `ispitivanje_elektricnog_kola`
+--
+
+DROP TABLE IF EXISTS `ispitivanje_elektricnog_kola`;
+CREATE TABLE `ispitivanje_elektricnog_kola` (
+  `ispitivanje_id` int(11) NOT NULL,
+  `elektricno_kolo_id` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `ispitivanje_elektricnog_kola`
+--
+
+INSERT INTO `ispitivanje_elektricnog_kola` (`ispitivanje_id`, `elektricno_kolo_id`) VALUES
+(1, 1),
+(2, 2),
+(3, 3),
+(4, 4),
+(5, 5),
+(6, 6),
+(7, 7),
+(8, 8),
+(9, 9),
+(10, 10),
+(11, 11),
+(12, 12),
+(13, 13),
+(14, 14),
+(15, 15),
+(16, 16),
+(17, 17),
+(18, 18),
+(19, 19),
+(20, 20),
+(21, 21),
+(22, 22),
+(23, 23),
+(24, 24),
+(25, 25),
+(26, 26),
+(27, 27),
+(28, 28),
+(29, 29),
+(30, 30),
+(31, 31),
+(32, 32),
+(33, 33),
+(34, 34),
+(35, 35),
+(36, 36),
+(37, 37),
+(38, 38),
+(39, 39),
+(40, 40),
+(41, 41),
+(42, 42),
+(43, 43),
+(44, 44),
+(45, 45),
+(46, 46),
+(47, 47),
+(48, 48),
+(49, 49),
+(50, 50),
+(51, 51),
+(52, 52),
+(53, 53),
+(54, 54),
+(55, 55),
+(56, 56),
+(57, 57),
+(58, 58),
+(59, 59),
+(60, 60),
+(61, 61),
+(62, 62),
+(63, 63),
+(64, 64),
+(65, 65),
+(66, 66),
+(67, 67),
+(68, 68),
+(69, 69),
+(70, 70),
+(71, 71),
+(72, 72),
+(73, 73),
+(74, 74),
+(75, 75),
+(76, 76),
+(77, 77),
+(78, 78),
+(79, 79),
+(80, 80),
+(81, 81),
+(82, 82),
+(83, 83),
+(84, 84),
+(85, 85),
+(86, 86),
+(87, 87),
+(88, 88),
+(89, 89),
+(90, 90),
+(91, 91),
+(92, 92),
+(93, 93),
+(94, 94),
+(95, 95),
+(96, 96),
+(97, 97),
+(98, 98),
+(99, 99),
+(100, 100);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `ispitivanje_prototipa`
+--
+
+DROP TABLE IF EXISTS `ispitivanje_prototipa`;
+CREATE TABLE `ispitivanje_prototipa` (
+  `ispitivanje_id` int(11) NOT NULL,
+  `prototip_id` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `ispitivanje_prototipa`
+--
+
+INSERT INTO `ispitivanje_prototipa` (`ispitivanje_id`, `prototip_id`) VALUES
+(201, 1),
+(202, 2),
+(203, 3),
+(204, 4),
+(205, 5),
+(206, 6),
+(207, 7),
+(208, 8),
+(209, 9),
+(210, 10),
+(211, 11),
+(212, 12),
+(213, 13),
+(214, 14),
+(215, 15),
+(216, 16),
+(217, 17),
+(218, 18),
+(219, 19),
+(220, 20),
+(221, 21),
+(222, 22),
+(223, 23),
+(224, 24),
+(225, 25),
+(226, 26),
+(227, 27),
+(228, 28),
+(229, 29),
+(230, 30),
+(231, 31),
+(232, 32),
+(233, 33),
+(234, 34),
+(235, 35),
+(236, 36),
+(237, 37),
+(238, 38),
+(239, 39),
+(240, 40),
+(241, 41),
+(242, 42),
+(243, 43),
+(244, 44),
+(245, 45),
+(246, 46),
+(247, 47),
+(248, 48),
+(249, 49),
+(250, 50),
+(251, 51),
+(252, 52),
+(253, 53),
+(254, 54),
+(255, 55),
+(256, 56),
+(257, 57),
+(258, 58),
+(259, 59),
+(260, 60),
+(261, 61),
+(262, 62),
+(263, 63),
+(264, 64),
+(265, 65),
+(266, 66),
+(267, 67),
+(268, 68),
+(269, 69),
+(270, 70),
+(271, 71),
+(272, 72),
+(273, 73),
+(274, 74),
+(275, 75),
+(276, 76),
+(277, 77),
+(278, 78),
+(279, 79),
+(280, 80),
+(281, 81),
+(282, 82),
+(283, 83),
+(284, 84),
+(285, 85),
+(286, 86),
+(287, 87),
+(288, 88),
+(289, 89),
+(290, 90),
+(291, 91),
+(292, 92),
+(293, 93),
+(294, 94),
+(295, 95),
+(296, 96),
+(297, 97),
+(298, 98),
+(299, 99),
+(300, 100);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `ispitivanje_senzora`
+--
+
+DROP TABLE IF EXISTS `ispitivanje_senzora`;
+CREATE TABLE `ispitivanje_senzora` (
+  `ispitivanje_id` int(11) NOT NULL,
+  `senzor_id` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `ispitivanje_senzora`
+--
+
+INSERT INTO `ispitivanje_senzora` (`ispitivanje_id`, `senzor_id`) VALUES
+(101, 1),
+(102, 2),
+(103, 3),
+(104, 4),
+(105, 5),
+(106, 6),
+(107, 7),
+(108, 8),
+(109, 9),
+(110, 10),
+(111, 11),
+(112, 12),
+(113, 13),
+(114, 14),
+(115, 15),
+(116, 16),
+(117, 17),
+(118, 18),
+(119, 19),
+(120, 20),
+(121, 21),
+(122, 22),
+(123, 23),
+(124, 24),
+(125, 25),
+(126, 26),
+(127, 27),
+(128, 28),
+(129, 29),
+(130, 30),
+(131, 31),
+(132, 32),
+(133, 33),
+(134, 34),
+(135, 35),
+(136, 36),
+(137, 37),
+(138, 38),
+(139, 39),
+(140, 40),
+(141, 41),
+(142, 42),
+(143, 43),
+(144, 44),
+(145, 45),
+(146, 46),
+(147, 47),
+(148, 48),
+(149, 49),
+(150, 50),
+(151, 51),
+(152, 52),
+(153, 53),
+(154, 54),
+(155, 55),
+(156, 56),
+(157, 57),
+(158, 58),
+(159, 59),
+(160, 60),
+(161, 61),
+(162, 62),
+(163, 63),
+(164, 64),
+(165, 65),
+(166, 66),
+(167, 67),
+(168, 68),
+(169, 69),
+(170, 70),
+(171, 71),
+(172, 72),
+(173, 73),
+(174, 74),
+(175, 75),
+(176, 76),
+(177, 77),
+(178, 78),
+(179, 79),
+(180, 80),
+(181, 81),
+(182, 82),
+(183, 83),
+(184, 84),
+(185, 85),
+(186, 86),
+(187, 87),
+(188, 88),
+(189, 89),
+(190, 90),
+(191, 91),
+(192, 92),
+(193, 93),
+(194, 94),
+(195, 95),
+(196, 96),
+(197, 97),
+(198, 98),
+(199, 99),
+(200, 100);
 
 -- --------------------------------------------------------
 
@@ -1039,6 +1685,7 @@ INSERT INTO `ispitivanje` (`ispitivanje_id`, `elektricno_kolo_id`, `impedansa`, 
 -- Table structure for table `istrazivac`
 --
 
+DROP TABLE IF EXISTS `istrazivac`;
 CREATE TABLE `istrazivac` (
   `istrazivac_id` int(11) NOT NULL,
   `ime` varchar(50) NOT NULL,
@@ -1150,7 +1797,17 @@ INSERT INTO `istrazivac` (`istrazivac_id`, `ime`, `prezime`, `kvalifikacije`) VA
 (97, 'Katarina', 'Savic', 'Telekomunikacije i analiza signala'),
 (98, 'Ivana', 'Popovic', 'Primena osciloskopa i mernih metoda'),
 (99, 'Dunja', 'Todorovic', 'Projektovanje PCB prototipova'),
-(100, 'Tamara', 'Kostic', 'Ispitivanje RLC kola i mernih nesigurnosti');
+(100, 'Tamara', 'Kostic', 'Ispitivanje RLC kola i mernih nesigurnosti'),
+(101, 'Andrej', 'Nikolic', 'Master elektrotehnike, oblast elektronska kola i merenja'),
+(102, 'Tamara', 'Petrovic', 'Diplomirani inzenjer elektrotehnike, oblast senzori i instrumentacija'),
+(103, 'Viktor', 'Jovanovic', 'Student master studija elektrotehnike, oblast laboratorijska merenja'),
+(104, 'Lena', 'Markovic', 'Inzenjer elektrotehnike, oblast prototipovi i ispitivanje kola'),
+(105, 'Filip', 'Stankovic', 'Doktorand elektrotehnike, oblast analogna elektronika'),
+(106, 'test1', 'test1', 'test1'),
+(107, 'test2', 'test2', 'test2'),
+(108, 'test3', 'test3', 'test3'),
+(109, 'test4', 'test4', 'test4'),
+(110, 'test5', 'test5', 'test5');
 
 -- --------------------------------------------------------
 
@@ -1158,6 +1815,7 @@ INSERT INTO `istrazivac` (`istrazivac_id`, `ime`, `prezime`, `kvalifikacije`) VA
 -- Stand-in structure for view `izradjeni_eksperimenti`
 -- (See below for the actual view)
 --
+DROP VIEW IF EXISTS `izradjeni_eksperimenti`;
 CREATE TABLE `izradjeni_eksperimenti` (
 `naziv` varchar(100)
 ,`ciljevi` text
@@ -1170,237 +1828,120 @@ CREATE TABLE `izradjeni_eksperimenti` (
 -- Table structure for table `izvodjenje`
 --
 
+DROP TABLE IF EXISTS `izvodjenje`;
 CREATE TABLE `izvodjenje` (
   `izvodjenje_id` int(11) NOT NULL,
   `eksperiment_id` int(11) NOT NULL,
   `laboratorija_id` int(11) NOT NULL,
   `datum` date DEFAULT NULL,
-  `status` varchar(50) DEFAULT NULL
+  `status_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `izvodjenje`
 --
 
-INSERT INTO `izvodjenje` (`izvodjenje_id`, `eksperiment_id`, `laboratorija_id`, `datum`, `status`) VALUES
-(1, 1, 1, '2024-02-01', 'planirano'),
-(2, 2, 6, '2024-02-03', 'u toku'),
-(3, 3, 11, '2024-02-05', 'zavrseno'),
-(4, 4, 16, '2024-02-07', 'odlozeno'),
-(5, 5, 21, '2024-02-09', 'otkazano'),
-(6, 6, 26, '2024-02-11', 'planirano'),
-(7, 7, 31, '2024-02-13', 'u toku'),
-(8, 8, 36, '2024-02-15', 'zavrseno'),
-(9, 9, 41, '2024-02-17', 'odlozeno'),
-(10, 10, 46, '2024-02-19', 'otkazano'),
-(11, 11, 51, '2024-02-21', 'planirano'),
-(12, 12, 56, '2024-02-23', 'u toku'),
-(13, 13, 61, '2024-02-25', 'zavrseno'),
-(14, 14, 66, '2024-02-27', 'odlozeno'),
-(15, 15, 71, '2024-02-29', 'otkazano'),
-(16, 16, 76, '2024-03-02', 'planirano'),
-(17, 17, 81, '2024-03-04', 'u toku'),
-(18, 18, 86, '2024-03-06', 'zavrseno'),
-(19, 19, 91, '2024-03-08', 'odlozeno'),
-(20, 20, 96, '2024-03-10', 'otkazano'),
-(21, 21, 1, '2024-03-12', 'planirano'),
-(22, 22, 6, '2024-03-14', 'u toku'),
-(23, 23, 11, '2024-03-16', 'zavrseno'),
-(24, 24, 16, '2024-03-18', 'odlozeno'),
-(25, 25, 21, '2024-03-20', 'otkazano'),
-(26, 26, 26, '2024-03-22', 'planirano'),
-(27, 27, 31, '2024-03-24', 'u toku'),
-(28, 28, 36, '2024-03-26', 'zavrseno'),
-(29, 29, 41, '2024-03-28', 'odlozeno'),
-(30, 30, 46, '2024-03-30', 'otkazano'),
-(31, 31, 51, '2024-04-01', 'planirano'),
-(32, 32, 56, '2024-04-03', 'u toku'),
-(33, 33, 61, '2024-04-05', 'zavrseno'),
-(34, 34, 66, '2024-04-07', 'odlozeno'),
-(35, 35, 71, '2024-04-09', 'otkazano'),
-(36, 36, 76, '2024-04-11', 'planirano'),
-(37, 37, 81, '2024-04-13', 'u toku'),
-(38, 38, 86, '2024-04-15', 'zavrseno'),
-(39, 39, 91, '2024-04-17', 'odlozeno'),
-(40, 40, 96, '2024-04-19', 'otkazano'),
-(41, 41, 1, '2024-04-21', 'planirano'),
-(42, 42, 6, '2024-04-23', 'u toku'),
-(43, 43, 11, '2024-04-25', 'zavrseno'),
-(44, 44, 16, '2024-04-27', 'odlozeno'),
-(45, 45, 21, '2024-04-29', 'otkazano'),
-(46, 46, 26, '2024-05-01', 'planirano'),
-(47, 47, 31, '2024-05-03', 'u toku'),
-(48, 48, 36, '2024-05-05', 'zavrseno'),
-(49, 49, 41, '2024-05-07', 'odlozeno'),
-(50, 50, 46, '2024-05-09', 'otkazano'),
-(51, 51, 51, '2024-05-11', 'planirano'),
-(52, 52, 56, '2024-05-13', 'u toku'),
-(53, 53, 61, '2024-05-15', 'zavrseno'),
-(54, 54, 66, '2024-05-17', 'odlozeno'),
-(55, 55, 71, '2024-05-19', 'otkazano'),
-(56, 56, 76, '2024-05-21', 'planirano'),
-(57, 57, 81, '2024-05-23', 'u toku'),
-(58, 58, 86, '2024-05-25', 'zavrseno'),
-(59, 59, 91, '2024-05-27', 'odlozeno'),
-(60, 60, 96, '2024-05-29', 'otkazano'),
-(61, 61, 1, '2024-05-31', 'planirano'),
-(62, 62, 6, '2024-06-02', 'u toku'),
-(63, 63, 11, '2024-06-04', 'zavrseno'),
-(64, 64, 16, '2024-06-06', 'odlozeno'),
-(65, 65, 21, '2024-06-08', 'otkazano'),
-(66, 66, 26, '2024-06-10', 'planirano'),
-(67, 67, 31, '2024-06-12', 'u toku'),
-(68, 68, 36, '2024-06-14', 'zavrseno'),
-(69, 69, 41, '2024-06-16', 'odlozeno'),
-(70, 70, 46, '2024-06-18', 'otkazano'),
-(71, 71, 51, '2024-06-20', 'planirano'),
-(72, 72, 56, '2024-06-22', 'u toku'),
-(73, 73, 61, '2024-06-24', 'zavrseno'),
-(74, 74, 66, '2024-06-26', 'odlozeno'),
-(75, 75, 71, '2024-06-28', 'otkazano'),
-(76, 76, 76, '2024-06-30', 'planirano'),
-(77, 77, 81, '2024-07-02', 'u toku'),
-(78, 78, 86, '2024-07-04', 'zavrseno'),
-(79, 79, 91, '2024-07-06', 'odlozeno'),
-(80, 80, 96, '2024-07-08', 'otkazano'),
-(81, 81, 1, '2024-07-10', 'planirano'),
-(82, 82, 6, '2024-07-12', 'u toku'),
-(83, 83, 11, '2024-07-14', 'zavrseno'),
-(84, 84, 16, '2024-07-16', 'odlozeno'),
-(85, 85, 21, '2024-07-18', 'otkazano'),
-(86, 86, 26, '2024-07-20', 'planirano'),
-(87, 87, 31, '2024-07-22', 'u toku'),
-(88, 88, 36, '2024-07-24', 'zavrseno'),
-(89, 89, 41, '2024-07-26', 'odlozeno'),
-(90, 90, 46, '2024-07-28', 'otkazano'),
-(91, 91, 51, '2024-07-30', 'planirano'),
-(92, 92, 56, '2024-08-01', 'u toku'),
-(93, 93, 61, '2024-08-03', 'zavrseno'),
-(94, 94, 66, '2024-08-05', 'odlozeno'),
-(95, 95, 71, '2024-08-07', 'otkazano'),
-(96, 96, 76, '2024-08-09', 'planirano'),
-(97, 97, 81, '2024-08-11', 'u toku'),
-(98, 98, 86, '2024-08-13', 'zavrseno'),
-(99, 99, 91, '2024-08-15', 'odlozeno'),
-(100, 100, 96, '2024-08-17', 'otkazano');
-
--- --------------------------------------------------------
-
---
--- Table structure for table `komponenta`
---
-
-CREATE TABLE `komponenta` (
-  `komponenta_id` int(11) NOT NULL,
-  `tip_komponente_id` int(11) NOT NULL,
-  `vrednost` decimal(15,4) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `komponenta`
---
-
-INSERT INTO `komponenta` (`komponenta_id`, `tip_komponente_id`, `vrednost`) VALUES
-(1, 1, 4700.0000),
-(2, 2, 0.0000),
-(3, 3, 0.0010),
-(4, 1, 10000.0000),
-(5, 2, 0.0000),
-(6, 3, 0.4700),
-(7, 1, 470.0000),
-(8, 2, 0.0000),
-(9, 3, 0.0100),
-(10, 1, 330.0000),
-(11, 2, 0.0000),
-(12, 3, 0.0220),
-(13, 1, 4700.0000),
-(14, 2, 0.0000),
-(15, 3, 0.1000),
-(16, 1, 4700.0000),
-(17, 2, 0.0000),
-(18, 3, 0.2200),
-(19, 1, 4700.0000),
-(20, 2, 0.0000),
-(21, 3, 0.0470),
-(22, 1, 330.0000),
-(23, 2, 0.0000),
-(24, 3, 0.1000),
-(25, 1, 4700.0000),
-(26, 2, 0.0000),
-(27, 3, 2.0000),
-(28, 1, 10000.0000),
-(29, 2, 0.0000),
-(30, 3, 1.0000),
-(31, 1, 1000.0000),
-(32, 2, 0.0000),
-(33, 3, 2.0000),
-(34, 1, 1000.0000),
-(35, 2, 0.0000),
-(36, 3, 2.0000),
-(37, 1, 1000.0000),
-(38, 2, 0.0000),
-(39, 3, 0.2200),
-(40, 1, 680.0000),
-(41, 2, 0.0000),
-(42, 3, 0.1000),
-(43, 1, 4700.0000),
-(44, 2, 0.0000),
-(45, 3, 2.0000),
-(46, 1, 10000.0000),
-(47, 2, 0.0000),
-(48, 3, 0.0470),
-(49, 1, 22.0000),
-(50, 2, 0.0000),
-(51, 3, 0.2200),
-(52, 1, 100.0000),
-(53, 2, 0.0000),
-(54, 3, 0.0100),
-(55, 1, 220.0000),
-(56, 2, 0.0000),
-(57, 3, 0.4700),
-(58, 1, 22.0000),
-(59, 2, 0.0000),
-(60, 3, 0.0100),
-(61, 1, 2200.0000),
-(62, 2, 0.0000),
-(63, 3, 1.0000),
-(64, 1, 680.0000),
-(65, 2, 0.0000),
-(66, 3, 0.0010),
-(67, 1, 2200.0000),
-(68, 2, 0.0000),
-(69, 3, 1.0000),
-(70, 1, 470.0000),
-(71, 2, 0.0000),
-(72, 3, 2.0000),
-(73, 1, 330.0000),
-(74, 2, 0.0000),
-(75, 3, 0.0100),
-(76, 1, 100.0000),
-(77, 2, 0.0000),
-(78, 3, 0.0010),
-(79, 1, 2200.0000),
-(80, 2, 0.0000),
-(81, 3, 0.0010),
-(82, 1, 100.0000),
-(83, 2, 0.0000),
-(84, 3, 0.4700),
-(85, 1, 4700.0000),
-(86, 2, 0.0000),
-(87, 3, 1.0000),
-(88, 1, 10000.0000),
-(89, 2, 0.0000),
-(90, 3, 0.4700),
-(91, 1, 330.0000),
-(92, 2, 0.0000),
-(93, 3, 1.0000),
-(94, 1, 100.0000),
-(95, 2, 0.0000),
-(96, 3, 0.0100),
-(97, 1, 10.0000),
-(98, 2, 0.0000),
-(99, 3, 0.0220),
-(100, 1, 470.0000);
+INSERT INTO `izvodjenje` (`izvodjenje_id`, `eksperiment_id`, `laboratorija_id`, `datum`, `status_id`) VALUES
+(1, 1, 1, '2024-02-01', 1),
+(2, 2, 6, '2024-02-03', 2),
+(3, 3, 11, '2024-02-05', 3),
+(4, 4, 16, '2024-02-07', 4),
+(5, 5, 21, '2024-02-09', 5),
+(6, 6, 26, '2024-02-11', 1),
+(7, 7, 31, '2024-02-13', 2),
+(8, 8, 36, '2024-02-15', 3),
+(9, 9, 41, '2024-02-17', 4),
+(10, 10, 46, '2024-02-19', 5),
+(11, 11, 51, '2024-02-21', 1),
+(12, 12, 56, '2024-02-23', 2),
+(13, 13, 61, '2024-02-25', 3),
+(14, 14, 66, '2024-02-27', 4),
+(15, 15, 71, '2024-02-29', 5),
+(16, 16, 76, '2024-03-02', 1),
+(17, 17, 81, '2024-03-04', 2),
+(18, 18, 86, '2024-03-06', 3),
+(19, 19, 91, '2024-03-08', 4),
+(20, 20, 96, '2024-03-10', 5),
+(21, 21, 1, '2024-03-12', 1),
+(22, 22, 6, '2024-03-14', 2),
+(23, 23, 11, '2024-03-16', 3),
+(24, 24, 16, '2024-03-18', 4),
+(25, 25, 21, '2024-03-20', 5),
+(26, 26, 26, '2024-03-22', 1),
+(27, 27, 31, '2024-03-24', 2),
+(28, 28, 36, '2024-03-26', 3),
+(29, 29, 41, '2024-03-28', 4),
+(30, 30, 46, '2024-03-30', 5),
+(31, 31, 51, '2024-04-01', 1),
+(32, 32, 56, '2024-04-03', 2),
+(33, 33, 61, '2024-04-05', 3),
+(34, 34, 66, '2024-04-07', 4),
+(35, 35, 71, '2024-04-09', 5),
+(36, 36, 76, '2024-04-11', 1),
+(37, 37, 81, '2024-04-13', 2),
+(38, 38, 86, '2024-04-15', 3),
+(39, 39, 91, '2024-04-17', 4),
+(40, 40, 96, '2024-04-19', 5),
+(41, 41, 1, '2024-04-21', 1),
+(42, 42, 6, '2024-04-23', 2),
+(43, 43, 11, '2024-04-25', 3),
+(44, 44, 16, '2024-04-27', 4),
+(45, 45, 21, '2024-04-29', 5),
+(46, 46, 26, '2024-05-01', 1),
+(47, 47, 31, '2024-05-03', 2),
+(48, 48, 36, '2024-05-05', 3),
+(49, 49, 41, '2024-05-07', 4),
+(50, 50, 46, '2024-05-09', 5),
+(51, 51, 51, '2024-05-11', 1),
+(52, 52, 56, '2024-05-13', 2),
+(53, 53, 61, '2024-05-15', 3),
+(54, 54, 66, '2024-05-17', 4),
+(55, 55, 71, '2024-05-19', 5),
+(56, 56, 76, '2024-05-21', 1),
+(57, 57, 81, '2024-05-23', 2),
+(58, 58, 86, '2024-05-25', 3),
+(59, 59, 91, '2024-05-27', 4),
+(60, 60, 96, '2024-05-29', 5),
+(61, 61, 1, '2024-05-31', 1),
+(62, 62, 6, '2024-06-02', 2),
+(63, 63, 11, '2024-06-04', 3),
+(64, 64, 16, '2024-06-06', 4),
+(65, 65, 21, '2024-06-08', 5),
+(66, 66, 26, '2024-06-10', 1),
+(67, 67, 31, '2024-06-12', 2),
+(68, 68, 36, '2024-06-14', 3),
+(69, 69, 41, '2024-06-16', 4),
+(70, 70, 46, '2024-06-18', 5),
+(71, 71, 51, '2024-06-20', 1),
+(72, 72, 56, '2024-06-22', 2),
+(73, 73, 61, '2024-06-24', 3),
+(74, 74, 66, '2024-06-26', 4),
+(75, 75, 71, '2024-06-28', 5),
+(76, 76, 76, '2024-06-30', 1),
+(77, 77, 81, '2024-07-02', 2),
+(78, 78, 86, '2024-07-04', 3),
+(79, 79, 91, '2024-07-06', 4),
+(80, 80, 96, '2024-07-08', 5),
+(81, 81, 1, '2024-07-10', 1),
+(82, 82, 6, '2024-07-12', 2),
+(83, 83, 11, '2024-07-14', 3),
+(84, 84, 16, '2024-07-16', 4),
+(85, 85, 21, '2024-07-18', 5),
+(86, 86, 26, '2024-07-20', 1),
+(87, 87, 31, '2024-07-22', 2),
+(88, 88, 36, '2024-07-24', 3),
+(89, 89, 41, '2024-07-26', 4),
+(90, 90, 46, '2024-07-28', 5),
+(91, 91, 51, '2024-07-30', 1),
+(92, 92, 56, '2024-08-01', 2),
+(93, 93, 61, '2024-08-03', 3),
+(94, 94, 66, '2024-08-05', 4),
+(95, 95, 71, '2024-08-07', 5),
+(96, 96, 76, '2024-08-09', 1),
+(97, 97, 81, '2024-08-11', 2),
+(98, 98, 86, '2024-08-13', 3),
+(99, 99, 91, '2024-08-15', 4),
+(100, 100, 96, '2024-08-17', 5);
 
 -- --------------------------------------------------------
 
@@ -1408,6 +1949,7 @@ INSERT INTO `komponenta` (`komponenta_id`, `tip_komponente_id`, `vrednost`) VALU
 -- Table structure for table `korisnik`
 --
 
+DROP TABLE IF EXISTS `korisnik`;
 CREATE TABLE `korisnik` (
   `korisnik_id` int(11) NOT NULL,
   `istrazivac_id` int(11) NOT NULL,
@@ -1519,7 +2061,12 @@ INSERT INTO `korisnik` (`korisnik_id`, `istrazivac_id`, `username`, `lozinka`) V
 (97, 97, 'ivana.097@laboratorija.edu.rs', '637f68de2de494b85a889cdc714bc71c'),
 (98, 98, 'katarina.098@laboratorija.edu.rs', '562841a0f21651f44ea69bc397bb4d4d'),
 (99, 99, 'mina.099@laboratorija.edu.rs', 'dc18b460165f4dc4d3033cf7c7598c15'),
-(100, 100, 'sofija.100@laboratorija.edu.rs', '5c90a4fc351ff0262fcd03344e809446');
+(100, 100, 'sofija.100@laboratorija.edu.rs', '5c90a4fc351ff0262fcd03344e809446'),
+(101, 106, 'test1', '5a105e8b9d40e1329780d62ea2265d8a'),
+(102, 107, 'test2', 'ad0234829205b9033196ba818f7a872b'),
+(103, 108, 'test3', '8ad8757baa8564dc136c1e07507f4a98'),
+(104, 109, 'test4', '86985e105f79b95d6bc918fb45ec7727'),
+(105, 110, 'test5', 'e3d704f3542b44a621ebed70dc0efe13');
 
 -- --------------------------------------------------------
 
@@ -1527,6 +2074,7 @@ INSERT INTO `korisnik` (`korisnik_id`, `istrazivac_id`, `username`, `lozinka`) V
 -- Table structure for table `laboratorija`
 --
 
+DROP TABLE IF EXISTS `laboratorija`;
 CREATE TABLE `laboratorija` (
   `laboratorija_id` int(11) NOT NULL,
   `naziv` varchar(100) NOT NULL,
@@ -1645,120 +2193,674 @@ INSERT INTO `laboratorija` (`laboratorija_id`, `naziv`, `opis_lokacije`) VALUES
 -- Table structure for table `merenje`
 --
 
+DROP TABLE IF EXISTS `merenje`;
 CREATE TABLE `merenje` (
   `merenje_id` int(11) NOT NULL,
-  `ispitivanje_id` int(11) NOT NULL,
-  `tip_merenja_id` int(11) NOT NULL,
+  `tip_merenja_id` int(11) DEFAULT NULL,
   `rezultat` decimal(15,4) DEFAULT NULL,
-  `merna_jedinica_id` int(11) NOT NULL,
-  `opis` text DEFAULT NULL
+  `opis` text DEFAULT NULL,
+  `izvodjenje_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `merenje`
 --
 
-INSERT INTO `merenje` (`merenje_id`, `ispitivanje_id`, `tip_merenja_id`, `rezultat`, `merna_jedinica_id`, `opis`) VALUES
-(1, 1, 1, 10.8472, 3, 'Napon na izlazu kola'),
-(2, 2, 2, 0.6045, 2, 'Struja kroz glavnu granu'),
-(3, 3, 1, 6.9767, 4, 'Ukupna snaga potrosaca'),
-(4, 4, 2, 2197.2913, 1, 'Ekvivalentni otpor kola'),
-(5, 5, 1, 0.0000, 5, 'Kapacitivnost mernog dela'),
-(6, 6, 2, 0.4277, 6, 'Induktivnost kalema u kolu'),
-(7, 7, 1, 1.2696, 3, 'Napon na izlazu kola'),
-(8, 8, 2, 1.5554, 2, 'Struja kroz glavnu granu'),
-(9, 9, 1, 43.3327, 4, 'Ukupna snaga potrosaca'),
-(10, 10, 2, 2973.0966, 1, 'Ekvivalentni otpor kola'),
-(11, 11, 1, 0.0001, 5, 'Kapacitivnost mernog dela'),
-(12, 12, 2, 1.3741, 6, 'Induktivnost kalema u kolu'),
-(13, 13, 1, 11.9212, 3, 'Napon na izlazu kola'),
-(14, 14, 2, 1.7399, 2, 'Struja kroz glavnu granu'),
-(15, 15, 1, 27.6713, 4, 'Ukupna snaga potrosaca'),
-(16, 16, 2, 7653.5898, 1, 'Ekvivalentni otpor kola'),
-(17, 17, 1, 0.0001, 5, 'Kapacitivnost mernog dela'),
-(18, 18, 2, 0.0822, 6, 'Induktivnost kalema u kolu'),
-(19, 19, 1, 22.0353, 3, 'Napon na izlazu kola'),
-(20, 20, 2, 0.2653, 2, 'Struja kroz glavnu granu'),
-(21, 21, 1, 16.6956, 4, 'Ukupna snaga potrosaca'),
-(22, 22, 2, 3549.5580, 1, 'Ekvivalentni otpor kola'),
-(23, 23, 1, 0.0001, 5, 'Kapacitivnost mernog dela'),
-(24, 24, 2, 1.3444, 6, 'Induktivnost kalema u kolu'),
-(25, 25, 1, 17.3873, 3, 'Napon na izlazu kola'),
-(26, 26, 2, 0.1424, 2, 'Struja kroz glavnu granu'),
-(27, 27, 1, 12.8311, 4, 'Ukupna snaga potrosaca'),
-(28, 28, 2, 1054.6371, 1, 'Ekvivalentni otpor kola'),
-(29, 29, 1, 0.0001, 5, 'Kapacitivnost mernog dela'),
-(30, 30, 2, 2.2030, 6, 'Induktivnost kalema u kolu'),
-(31, 31, 1, 11.2816, 3, 'Napon na izlazu kola'),
-(32, 32, 2, 0.2507, 2, 'Struja kroz glavnu granu'),
-(33, 33, 1, 44.7194, 4, 'Ukupna snaga potrosaca'),
-(34, 34, 2, 5957.9194, 1, 'Ekvivalentni otpor kola'),
-(35, 35, 1, 0.0000, 5, 'Kapacitivnost mernog dela'),
-(36, 36, 2, 2.5463, 6, 'Induktivnost kalema u kolu'),
-(37, 37, 1, 18.0307, 3, 'Napon na izlazu kola'),
-(38, 38, 2, 0.4982, 2, 'Struja kroz glavnu granu'),
-(39, 39, 1, 6.5029, 4, 'Ukupna snaga potrosaca'),
-(40, 40, 2, 7519.5805, 1, 'Ekvivalentni otpor kola'),
-(41, 41, 1, 0.0001, 5, 'Kapacitivnost mernog dela'),
-(42, 42, 2, 0.3136, 6, 'Induktivnost kalema u kolu'),
-(43, 43, 1, 15.0010, 3, 'Napon na izlazu kola'),
-(44, 44, 2, 1.2923, 2, 'Struja kroz glavnu granu'),
-(45, 45, 1, 25.7029, 4, 'Ukupna snaga potrosaca'),
-(46, 46, 2, 1347.7690, 1, 'Ekvivalentni otpor kola'),
-(47, 47, 1, 0.0001, 5, 'Kapacitivnost mernog dela'),
-(48, 48, 2, 1.4862, 6, 'Induktivnost kalema u kolu'),
-(49, 49, 1, 1.2558, 3, 'Napon na izlazu kola'),
-(50, 50, 2, 1.8010, 2, 'Struja kroz glavnu granu'),
-(51, 51, 1, 46.0710, 4, 'Ukupna snaga potrosaca'),
-(52, 52, 2, 5230.6716, 1, 'Ekvivalentni otpor kola'),
-(53, 53, 1, 0.0000, 5, 'Kapacitivnost mernog dela'),
-(54, 54, 2, 2.5285, 6, 'Induktivnost kalema u kolu'),
-(55, 55, 1, 7.1676, 3, 'Napon na izlazu kola'),
-(56, 56, 2, 0.5256, 2, 'Struja kroz glavnu granu'),
-(57, 57, 1, 41.2466, 4, 'Ukupna snaga potrosaca'),
-(58, 58, 2, 613.7618, 1, 'Ekvivalentni otpor kola'),
-(59, 59, 1, 0.0001, 5, 'Kapacitivnost mernog dela'),
-(60, 60, 2, 1.8060, 6, 'Induktivnost kalema u kolu'),
-(61, 61, 1, 12.5078, 3, 'Napon na izlazu kola'),
-(62, 62, 2, 1.9928, 2, 'Struja kroz glavnu granu'),
-(63, 63, 1, 11.6316, 4, 'Ukupna snaga potrosaca'),
-(64, 64, 2, 7047.0415, 1, 'Ekvivalentni otpor kola'),
-(65, 65, 1, 0.0000, 5, 'Kapacitivnost mernog dela'),
-(66, 66, 2, 1.6130, 6, 'Induktivnost kalema u kolu'),
-(67, 67, 1, 13.3965, 3, 'Napon na izlazu kola'),
-(68, 68, 2, 0.8656, 2, 'Struja kroz glavnu granu'),
-(69, 69, 1, 1.0747, 4, 'Ukupna snaga potrosaca'),
-(70, 70, 2, 9511.3742, 1, 'Ekvivalentni otpor kola'),
-(71, 71, 1, 0.0000, 5, 'Kapacitivnost mernog dela'),
-(72, 72, 2, 1.2061, 6, 'Induktivnost kalema u kolu'),
-(73, 73, 1, 10.9270, 3, 'Napon na izlazu kola'),
-(74, 74, 2, 1.2962, 2, 'Struja kroz glavnu granu'),
-(75, 75, 1, 35.9520, 4, 'Ukupna snaga potrosaca'),
-(76, 76, 2, 5866.2759, 1, 'Ekvivalentni otpor kola'),
-(77, 77, 1, 0.0000, 5, 'Kapacitivnost mernog dela'),
-(78, 78, 2, 0.6982, 6, 'Induktivnost kalema u kolu'),
-(79, 79, 1, 20.5273, 3, 'Napon na izlazu kola'),
-(80, 80, 2, 1.7954, 2, 'Struja kroz glavnu granu'),
-(81, 81, 1, 42.1797, 4, 'Ukupna snaga potrosaca'),
-(82, 82, 2, 7749.1410, 1, 'Ekvivalentni otpor kola'),
-(83, 83, 1, 0.0001, 5, 'Kapacitivnost mernog dela'),
-(84, 84, 2, 2.2477, 6, 'Induktivnost kalema u kolu'),
-(85, 85, 1, 8.6040, 3, 'Napon na izlazu kola'),
-(86, 86, 2, 0.3096, 2, 'Struja kroz glavnu granu'),
-(87, 87, 1, 0.6835, 4, 'Ukupna snaga potrosaca'),
-(88, 88, 2, 2718.4170, 1, 'Ekvivalentni otpor kola'),
-(89, 89, 1, 0.0001, 5, 'Kapacitivnost mernog dela'),
-(90, 90, 2, 0.8985, 6, 'Induktivnost kalema u kolu'),
-(91, 91, 1, 23.1671, 3, 'Napon na izlazu kola'),
-(92, 92, 2, 0.9141, 2, 'Struja kroz glavnu granu'),
-(93, 93, 1, 10.1012, 4, 'Ukupna snaga potrosaca'),
-(94, 94, 2, 113.3197, 1, 'Ekvivalentni otpor kola'),
-(95, 95, 1, 0.0000, 5, 'Kapacitivnost mernog dela'),
-(96, 96, 2, 0.4602, 6, 'Induktivnost kalema u kolu'),
-(97, 97, 1, 13.4443, 3, 'Napon na izlazu kola'),
-(98, 98, 2, 0.3342, 2, 'Struja kroz glavnu granu'),
-(99, 99, 1, 32.1724, 4, 'Ukupna snaga potrosaca'),
-(100, 100, 2, 6288.9609, 1, 'Ekvivalentni otpor kola');
+INSERT INTO `merenje` (`merenje_id`, `tip_merenja_id`, `rezultat`, `opis`, `izvodjenje_id`) VALUES
+(1, 1, 1.1570, 'Merenje broj 1 u okviru laboratorijskog izvodjenja.', 1),
+(2, 2, 1.3140, 'Merenje broj 2 u okviru laboratorijskog izvodjenja.', 2),
+(3, 1, 1.4710, 'Merenje broj 3 u okviru laboratorijskog izvodjenja.', 3),
+(4, 2, 1.6280, 'Merenje broj 4 u okviru laboratorijskog izvodjenja.', 4),
+(5, 1, 1.7850, 'Merenje broj 5 u okviru laboratorijskog izvodjenja.', 5),
+(6, 2, 1.9420, 'Merenje broj 6 u okviru laboratorijskog izvodjenja.', 6),
+(7, 1, 2.0990, 'Merenje broj 7 u okviru laboratorijskog izvodjenja.', 7),
+(8, 2, 2.2560, 'Merenje broj 8 u okviru laboratorijskog izvodjenja.', 8),
+(9, 1, 2.4130, 'Merenje broj 9 u okviru laboratorijskog izvodjenja.', 9),
+(10, 2, 2.5700, 'Merenje broj 10 u okviru laboratorijskog izvodjenja.', 10),
+(11, 1, 2.7270, 'Merenje broj 11 u okviru laboratorijskog izvodjenja.', 11),
+(12, 2, 2.8840, 'Merenje broj 12 u okviru laboratorijskog izvodjenja.', 12),
+(13, 1, 3.0410, 'Merenje broj 13 u okviru laboratorijskog izvodjenja.', 13),
+(14, 2, 3.1980, 'Merenje broj 14 u okviru laboratorijskog izvodjenja.', 14),
+(15, 1, 3.3550, 'Merenje broj 15 u okviru laboratorijskog izvodjenja.', 15),
+(16, 2, 3.5120, 'Merenje broj 16 u okviru laboratorijskog izvodjenja.', 16),
+(17, 1, 3.6690, 'Merenje broj 17 u okviru laboratorijskog izvodjenja.', 17),
+(18, 2, 3.8260, 'Merenje broj 18 u okviru laboratorijskog izvodjenja.', 18),
+(19, 1, 3.9830, 'Merenje broj 19 u okviru laboratorijskog izvodjenja.', 19),
+(20, 2, 4.1400, 'Merenje broj 20 u okviru laboratorijskog izvodjenja.', 20),
+(21, 1, 4.2970, 'Merenje broj 21 u okviru laboratorijskog izvodjenja.', 1),
+(22, 2, 4.4540, 'Merenje broj 22 u okviru laboratorijskog izvodjenja.', 2),
+(23, 1, 4.6110, 'Merenje broj 23 u okviru laboratorijskog izvodjenja.', 3),
+(24, 2, 4.7680, 'Merenje broj 24 u okviru laboratorijskog izvodjenja.', 4),
+(25, 1, 4.9250, 'Merenje broj 25 u okviru laboratorijskog izvodjenja.', 5),
+(26, 2, 5.0820, 'Merenje broj 26 u okviru laboratorijskog izvodjenja.', 6),
+(27, 1, 5.2390, 'Merenje broj 27 u okviru laboratorijskog izvodjenja.', 7),
+(28, 2, 5.3960, 'Merenje broj 28 u okviru laboratorijskog izvodjenja.', 8),
+(29, 1, 5.5530, 'Merenje broj 29 u okviru laboratorijskog izvodjenja.', 9),
+(30, 2, 5.7100, 'Merenje broj 30 u okviru laboratorijskog izvodjenja.', 10),
+(31, 1, 5.8670, 'Merenje broj 31 u okviru laboratorijskog izvodjenja.', 11),
+(32, 2, 6.0240, 'Merenje broj 32 u okviru laboratorijskog izvodjenja.', 12),
+(33, 1, 6.1810, 'Merenje broj 33 u okviru laboratorijskog izvodjenja.', 13),
+(34, 2, 6.3380, 'Merenje broj 34 u okviru laboratorijskog izvodjenja.', 14),
+(35, 1, 6.4950, 'Merenje broj 35 u okviru laboratorijskog izvodjenja.', 15),
+(36, 2, 6.6520, 'Merenje broj 36 u okviru laboratorijskog izvodjenja.', 16),
+(37, 1, 6.8090, 'Merenje broj 37 u okviru laboratorijskog izvodjenja.', 17),
+(38, 2, 6.9660, 'Merenje broj 38 u okviru laboratorijskog izvodjenja.', 18),
+(39, 1, 7.1230, 'Merenje broj 39 u okviru laboratorijskog izvodjenja.', 19),
+(40, 2, 7.2800, 'Merenje broj 40 u okviru laboratorijskog izvodjenja.', 20),
+(41, 1, 7.4370, 'Merenje broj 41 u okviru laboratorijskog izvodjenja.', 1),
+(42, 2, 7.5940, 'Merenje broj 42 u okviru laboratorijskog izvodjenja.', 2),
+(43, 1, 7.7510, 'Merenje broj 43 u okviru laboratorijskog izvodjenja.', 3),
+(44, 2, 7.9080, 'Merenje broj 44 u okviru laboratorijskog izvodjenja.', 4),
+(45, 1, 8.0650, 'Merenje broj 45 u okviru laboratorijskog izvodjenja.', 5),
+(46, 2, 8.2220, 'Merenje broj 46 u okviru laboratorijskog izvodjenja.', 6),
+(47, 1, 8.3790, 'Merenje broj 47 u okviru laboratorijskog izvodjenja.', 7),
+(48, 2, 8.5360, 'Merenje broj 48 u okviru laboratorijskog izvodjenja.', 8),
+(49, 1, 8.6930, 'Merenje broj 49 u okviru laboratorijskog izvodjenja.', 9),
+(50, 2, 8.8500, 'Merenje broj 50 u okviru laboratorijskog izvodjenja.', 10),
+(51, 1, 9.0070, 'Merenje broj 51 u okviru laboratorijskog izvodjenja.', 11),
+(52, 2, 9.1640, 'Merenje broj 52 u okviru laboratorijskog izvodjenja.', 12),
+(53, 1, 9.3210, 'Merenje broj 53 u okviru laboratorijskog izvodjenja.', 13),
+(54, 2, 9.4780, 'Merenje broj 54 u okviru laboratorijskog izvodjenja.', 14),
+(55, 1, 9.6350, 'Merenje broj 55 u okviru laboratorijskog izvodjenja.', 15),
+(56, 2, 9.7920, 'Merenje broj 56 u okviru laboratorijskog izvodjenja.', 16),
+(57, 1, 9.9490, 'Merenje broj 57 u okviru laboratorijskog izvodjenja.', 17),
+(58, 2, 10.1060, 'Merenje broj 58 u okviru laboratorijskog izvodjenja.', 18),
+(59, 1, 10.2630, 'Merenje broj 59 u okviru laboratorijskog izvodjenja.', 19),
+(60, 2, 10.4200, 'Merenje broj 60 u okviru laboratorijskog izvodjenja.', 20),
+(61, 1, 10.5770, 'Merenje broj 61 u okviru laboratorijskog izvodjenja.', 1),
+(62, 2, 10.7340, 'Merenje broj 62 u okviru laboratorijskog izvodjenja.', 2),
+(63, 1, 10.8910, 'Merenje broj 63 u okviru laboratorijskog izvodjenja.', 3),
+(64, 2, 11.0480, 'Merenje broj 64 u okviru laboratorijskog izvodjenja.', 4),
+(65, 1, 11.2050, 'Merenje broj 65 u okviru laboratorijskog izvodjenja.', 5),
+(66, 2, 11.3620, 'Merenje broj 66 u okviru laboratorijskog izvodjenja.', 6),
+(67, 1, 11.5190, 'Merenje broj 67 u okviru laboratorijskog izvodjenja.', 7),
+(68, 2, 11.6760, 'Merenje broj 68 u okviru laboratorijskog izvodjenja.', 8),
+(69, 1, 11.8330, 'Merenje broj 69 u okviru laboratorijskog izvodjenja.', 9),
+(70, 2, 11.9900, 'Merenje broj 70 u okviru laboratorijskog izvodjenja.', 10),
+(71, 1, 12.1470, 'Merenje broj 71 u okviru laboratorijskog izvodjenja.', 11),
+(72, 2, 12.3040, 'Merenje broj 72 u okviru laboratorijskog izvodjenja.', 12),
+(73, 1, 12.4610, 'Merenje broj 73 u okviru laboratorijskog izvodjenja.', 13),
+(74, 2, 12.6180, 'Merenje broj 74 u okviru laboratorijskog izvodjenja.', 14),
+(75, 1, 12.7750, 'Merenje broj 75 u okviru laboratorijskog izvodjenja.', 15),
+(76, 2, 12.9320, 'Merenje broj 76 u okviru laboratorijskog izvodjenja.', 16),
+(77, 1, 13.0890, 'Merenje broj 77 u okviru laboratorijskog izvodjenja.', 17),
+(78, 2, 13.2460, 'Merenje broj 78 u okviru laboratorijskog izvodjenja.', 18),
+(79, 1, 13.4030, 'Merenje broj 79 u okviru laboratorijskog izvodjenja.', 19),
+(80, 2, 13.5600, 'Merenje broj 80 u okviru laboratorijskog izvodjenja.', 20),
+(81, 1, 13.7170, 'Merenje broj 81 u okviru laboratorijskog izvodjenja.', 1),
+(82, 2, 13.8740, 'Merenje broj 82 u okviru laboratorijskog izvodjenja.', 2),
+(83, 1, 14.0310, 'Merenje broj 83 u okviru laboratorijskog izvodjenja.', 3),
+(84, 2, 14.1880, 'Merenje broj 84 u okviru laboratorijskog izvodjenja.', 4),
+(85, 1, 14.3450, 'Merenje broj 85 u okviru laboratorijskog izvodjenja.', 5),
+(86, 2, 14.5020, 'Merenje broj 86 u okviru laboratorijskog izvodjenja.', 6),
+(87, 1, 14.6590, 'Merenje broj 87 u okviru laboratorijskog izvodjenja.', 7),
+(88, 2, 14.8160, 'Merenje broj 88 u okviru laboratorijskog izvodjenja.', 8),
+(89, 1, 14.9730, 'Merenje broj 89 u okviru laboratorijskog izvodjenja.', 9),
+(90, 2, 15.1300, 'Merenje broj 90 u okviru laboratorijskog izvodjenja.', 10),
+(91, 1, 15.2870, 'Merenje broj 91 u okviru laboratorijskog izvodjenja.', 11),
+(92, 2, 15.4440, 'Merenje broj 92 u okviru laboratorijskog izvodjenja.', 12),
+(93, 1, 15.6010, 'Merenje broj 93 u okviru laboratorijskog izvodjenja.', 13),
+(94, 2, 15.7580, 'Merenje broj 94 u okviru laboratorijskog izvodjenja.', 14),
+(95, 1, 15.9150, 'Merenje broj 95 u okviru laboratorijskog izvodjenja.', 15),
+(96, 2, 16.0720, 'Merenje broj 96 u okviru laboratorijskog izvodjenja.', 16),
+(97, 1, 16.2290, 'Merenje broj 97 u okviru laboratorijskog izvodjenja.', 17),
+(98, 2, 16.3860, 'Merenje broj 98 u okviru laboratorijskog izvodjenja.', 18),
+(99, 1, 16.5430, 'Merenje broj 99 u okviru laboratorijskog izvodjenja.', 19),
+(100, 2, 16.7000, 'Merenje broj 100 u okviru laboratorijskog izvodjenja.', 20),
+(101, 1, 16.8570, 'Merenje broj 101 u okviru laboratorijskog izvodjenja.', 1),
+(102, 2, 17.0140, 'Merenje broj 102 u okviru laboratorijskog izvodjenja.', 2),
+(103, 1, 17.1710, 'Merenje broj 103 u okviru laboratorijskog izvodjenja.', 3),
+(104, 2, 17.3280, 'Merenje broj 104 u okviru laboratorijskog izvodjenja.', 4),
+(105, 1, 17.4850, 'Merenje broj 105 u okviru laboratorijskog izvodjenja.', 5),
+(106, 2, 17.6420, 'Merenje broj 106 u okviru laboratorijskog izvodjenja.', 6),
+(107, 1, 17.7990, 'Merenje broj 107 u okviru laboratorijskog izvodjenja.', 7),
+(108, 2, 17.9560, 'Merenje broj 108 u okviru laboratorijskog izvodjenja.', 8),
+(109, 1, 18.1130, 'Merenje broj 109 u okviru laboratorijskog izvodjenja.', 9),
+(110, 2, 18.2700, 'Merenje broj 110 u okviru laboratorijskog izvodjenja.', 10),
+(111, 1, 18.4270, 'Merenje broj 111 u okviru laboratorijskog izvodjenja.', 11),
+(112, 2, 18.5840, 'Merenje broj 112 u okviru laboratorijskog izvodjenja.', 12),
+(113, 1, 18.7410, 'Merenje broj 113 u okviru laboratorijskog izvodjenja.', 13),
+(114, 2, 18.8980, 'Merenje broj 114 u okviru laboratorijskog izvodjenja.', 14),
+(115, 1, 19.0550, 'Merenje broj 115 u okviru laboratorijskog izvodjenja.', 15),
+(116, 2, 19.2120, 'Merenje broj 116 u okviru laboratorijskog izvodjenja.', 16),
+(117, 1, 19.3690, 'Merenje broj 117 u okviru laboratorijskog izvodjenja.', 17),
+(118, 2, 19.5260, 'Merenje broj 118 u okviru laboratorijskog izvodjenja.', 18),
+(119, 1, 19.6830, 'Merenje broj 119 u okviru laboratorijskog izvodjenja.', 19),
+(120, 2, 19.8400, 'Merenje broj 120 u okviru laboratorijskog izvodjenja.', 20),
+(121, 1, 19.9970, 'Merenje broj 121 u okviru laboratorijskog izvodjenja.', 1),
+(122, 2, 20.1540, 'Merenje broj 122 u okviru laboratorijskog izvodjenja.', 2),
+(123, 1, 20.3110, 'Merenje broj 123 u okviru laboratorijskog izvodjenja.', 3),
+(124, 2, 20.4680, 'Merenje broj 124 u okviru laboratorijskog izvodjenja.', 4),
+(125, 1, 20.6250, 'Merenje broj 125 u okviru laboratorijskog izvodjenja.', 5),
+(126, 2, 20.7820, 'Merenje broj 126 u okviru laboratorijskog izvodjenja.', 6),
+(127, 1, 20.9390, 'Merenje broj 127 u okviru laboratorijskog izvodjenja.', 7),
+(128, 2, 21.0960, 'Merenje broj 128 u okviru laboratorijskog izvodjenja.', 8),
+(129, 1, 21.2530, 'Merenje broj 129 u okviru laboratorijskog izvodjenja.', 9),
+(130, 2, 21.4100, 'Merenje broj 130 u okviru laboratorijskog izvodjenja.', 10),
+(131, 1, 21.5670, 'Merenje broj 131 u okviru laboratorijskog izvodjenja.', 11),
+(132, 2, 21.7240, 'Merenje broj 132 u okviru laboratorijskog izvodjenja.', 12),
+(133, 1, 21.8810, 'Merenje broj 133 u okviru laboratorijskog izvodjenja.', 13),
+(134, 2, 22.0380, 'Merenje broj 134 u okviru laboratorijskog izvodjenja.', 14),
+(135, 1, 22.1950, 'Merenje broj 135 u okviru laboratorijskog izvodjenja.', 15),
+(136, 2, 22.3520, 'Merenje broj 136 u okviru laboratorijskog izvodjenja.', 16),
+(137, 1, 22.5090, 'Merenje broj 137 u okviru laboratorijskog izvodjenja.', 17),
+(138, 2, 22.6660, 'Merenje broj 138 u okviru laboratorijskog izvodjenja.', 18),
+(139, 1, 22.8230, 'Merenje broj 139 u okviru laboratorijskog izvodjenja.', 19),
+(140, 2, 22.9800, 'Merenje broj 140 u okviru laboratorijskog izvodjenja.', 20),
+(141, 1, 23.1370, 'Merenje broj 141 u okviru laboratorijskog izvodjenja.', 1),
+(142, 2, 23.2940, 'Merenje broj 142 u okviru laboratorijskog izvodjenja.', 2),
+(143, 1, 23.4510, 'Merenje broj 143 u okviru laboratorijskog izvodjenja.', 3),
+(144, 2, 23.6080, 'Merenje broj 144 u okviru laboratorijskog izvodjenja.', 4),
+(145, 1, 23.7650, 'Merenje broj 145 u okviru laboratorijskog izvodjenja.', 5),
+(146, 2, 23.9220, 'Merenje broj 146 u okviru laboratorijskog izvodjenja.', 6),
+(147, 1, 24.0790, 'Merenje broj 147 u okviru laboratorijskog izvodjenja.', 7),
+(148, 2, 24.2360, 'Merenje broj 148 u okviru laboratorijskog izvodjenja.', 8),
+(149, 1, 24.3930, 'Merenje broj 149 u okviru laboratorijskog izvodjenja.', 9),
+(150, 2, 24.5500, 'Merenje broj 150 u okviru laboratorijskog izvodjenja.', 10),
+(151, 1, 24.7070, 'Merenje broj 151 u okviru laboratorijskog izvodjenja.', 11),
+(152, 2, 24.8640, 'Merenje broj 152 u okviru laboratorijskog izvodjenja.', 12),
+(153, 1, 25.0210, 'Merenje broj 153 u okviru laboratorijskog izvodjenja.', 13),
+(154, 2, 25.1780, 'Merenje broj 154 u okviru laboratorijskog izvodjenja.', 14),
+(155, 1, 25.3350, 'Merenje broj 155 u okviru laboratorijskog izvodjenja.', 15),
+(156, 2, 25.4920, 'Merenje broj 156 u okviru laboratorijskog izvodjenja.', 16),
+(157, 1, 25.6490, 'Merenje broj 157 u okviru laboratorijskog izvodjenja.', 17),
+(158, 2, 25.8060, 'Merenje broj 158 u okviru laboratorijskog izvodjenja.', 18),
+(159, 1, 25.9630, 'Merenje broj 159 u okviru laboratorijskog izvodjenja.', 19),
+(160, 2, 26.1200, 'Merenje broj 160 u okviru laboratorijskog izvodjenja.', 20),
+(161, 1, 26.2770, 'Merenje broj 161 u okviru laboratorijskog izvodjenja.', 1),
+(162, 2, 26.4340, 'Merenje broj 162 u okviru laboratorijskog izvodjenja.', 2),
+(163, 1, 26.5910, 'Merenje broj 163 u okviru laboratorijskog izvodjenja.', 3),
+(164, 2, 26.7480, 'Merenje broj 164 u okviru laboratorijskog izvodjenja.', 4),
+(165, 1, 26.9050, 'Merenje broj 165 u okviru laboratorijskog izvodjenja.', 5),
+(166, 2, 27.0620, 'Merenje broj 166 u okviru laboratorijskog izvodjenja.', 6),
+(167, 1, 27.2190, 'Merenje broj 167 u okviru laboratorijskog izvodjenja.', 7),
+(168, 2, 27.3760, 'Merenje broj 168 u okviru laboratorijskog izvodjenja.', 8),
+(169, 1, 27.5330, 'Merenje broj 169 u okviru laboratorijskog izvodjenja.', 9),
+(170, 2, 27.6900, 'Merenje broj 170 u okviru laboratorijskog izvodjenja.', 10),
+(171, 1, 27.8470, 'Merenje broj 171 u okviru laboratorijskog izvodjenja.', 11),
+(172, 2, 28.0040, 'Merenje broj 172 u okviru laboratorijskog izvodjenja.', 12),
+(173, 1, 28.1610, 'Merenje broj 173 u okviru laboratorijskog izvodjenja.', 13),
+(174, 2, 28.3180, 'Merenje broj 174 u okviru laboratorijskog izvodjenja.', 14),
+(175, 1, 28.4750, 'Merenje broj 175 u okviru laboratorijskog izvodjenja.', 15),
+(176, 2, 28.6320, 'Merenje broj 176 u okviru laboratorijskog izvodjenja.', 16),
+(177, 1, 28.7890, 'Merenje broj 177 u okviru laboratorijskog izvodjenja.', 17),
+(178, 2, 28.9460, 'Merenje broj 178 u okviru laboratorijskog izvodjenja.', 18),
+(179, 1, 29.1030, 'Merenje broj 179 u okviru laboratorijskog izvodjenja.', 19),
+(180, 2, 29.2600, 'Merenje broj 180 u okviru laboratorijskog izvodjenja.', 20),
+(181, 1, 29.4170, 'Merenje broj 181 u okviru laboratorijskog izvodjenja.', 1),
+(182, 2, 29.5740, 'Merenje broj 182 u okviru laboratorijskog izvodjenja.', 2),
+(183, 1, 29.7310, 'Merenje broj 183 u okviru laboratorijskog izvodjenja.', 3),
+(184, 2, 29.8880, 'Merenje broj 184 u okviru laboratorijskog izvodjenja.', 4),
+(185, 1, 30.0450, 'Merenje broj 185 u okviru laboratorijskog izvodjenja.', 5),
+(186, 2, 30.2020, 'Merenje broj 186 u okviru laboratorijskog izvodjenja.', 6),
+(187, 1, 30.3590, 'Merenje broj 187 u okviru laboratorijskog izvodjenja.', 7),
+(188, 2, 30.5160, 'Merenje broj 188 u okviru laboratorijskog izvodjenja.', 8),
+(189, 1, 30.6730, 'Merenje broj 189 u okviru laboratorijskog izvodjenja.', 9),
+(190, 2, 30.8300, 'Merenje broj 190 u okviru laboratorijskog izvodjenja.', 10),
+(191, 1, 30.9870, 'Merenje broj 191 u okviru laboratorijskog izvodjenja.', 11),
+(192, 2, 31.1440, 'Merenje broj 192 u okviru laboratorijskog izvodjenja.', 12),
+(193, 1, 31.3010, 'Merenje broj 193 u okviru laboratorijskog izvodjenja.', 13),
+(194, 2, 31.4580, 'Merenje broj 194 u okviru laboratorijskog izvodjenja.', 14),
+(195, 1, 31.6150, 'Merenje broj 195 u okviru laboratorijskog izvodjenja.', 15),
+(196, 2, 31.7720, 'Merenje broj 196 u okviru laboratorijskog izvodjenja.', 16),
+(197, 1, 31.9290, 'Merenje broj 197 u okviru laboratorijskog izvodjenja.', 17),
+(198, 2, 32.0860, 'Merenje broj 198 u okviru laboratorijskog izvodjenja.', 18),
+(199, 1, 32.2430, 'Merenje broj 199 u okviru laboratorijskog izvodjenja.', 19),
+(200, 2, 32.4000, 'Merenje broj 200 u okviru laboratorijskog izvodjenja.', 20),
+(201, 1, 32.5570, 'Merenje broj 201 u okviru laboratorijskog izvodjenja.', 1),
+(202, 2, 32.7140, 'Merenje broj 202 u okviru laboratorijskog izvodjenja.', 2),
+(203, 1, 32.8710, 'Merenje broj 203 u okviru laboratorijskog izvodjenja.', 3),
+(204, 2, 33.0280, 'Merenje broj 204 u okviru laboratorijskog izvodjenja.', 4),
+(205, 1, 33.1850, 'Merenje broj 205 u okviru laboratorijskog izvodjenja.', 5),
+(206, 2, 33.3420, 'Merenje broj 206 u okviru laboratorijskog izvodjenja.', 6),
+(207, 1, 33.4990, 'Merenje broj 207 u okviru laboratorijskog izvodjenja.', 7),
+(208, 2, 33.6560, 'Merenje broj 208 u okviru laboratorijskog izvodjenja.', 8),
+(209, 1, 33.8130, 'Merenje broj 209 u okviru laboratorijskog izvodjenja.', 9),
+(210, 2, 33.9700, 'Merenje broj 210 u okviru laboratorijskog izvodjenja.', 10),
+(211, 1, 34.1270, 'Merenje broj 211 u okviru laboratorijskog izvodjenja.', 11),
+(212, 2, 34.2840, 'Merenje broj 212 u okviru laboratorijskog izvodjenja.', 12),
+(213, 1, 34.4410, 'Merenje broj 213 u okviru laboratorijskog izvodjenja.', 13),
+(214, 2, 34.5980, 'Merenje broj 214 u okviru laboratorijskog izvodjenja.', 14),
+(215, 1, 34.7550, 'Merenje broj 215 u okviru laboratorijskog izvodjenja.', 15),
+(216, 2, 34.9120, 'Merenje broj 216 u okviru laboratorijskog izvodjenja.', 16),
+(217, 1, 35.0690, 'Merenje broj 217 u okviru laboratorijskog izvodjenja.', 17),
+(218, 2, 35.2260, 'Merenje broj 218 u okviru laboratorijskog izvodjenja.', 18),
+(219, 1, 35.3830, 'Merenje broj 219 u okviru laboratorijskog izvodjenja.', 19),
+(220, 2, 35.5400, 'Merenje broj 220 u okviru laboratorijskog izvodjenja.', 20),
+(221, 1, 35.6970, 'Merenje broj 221 u okviru laboratorijskog izvodjenja.', 1),
+(222, 2, 35.8540, 'Merenje broj 222 u okviru laboratorijskog izvodjenja.', 2),
+(223, 1, 36.0110, 'Merenje broj 223 u okviru laboratorijskog izvodjenja.', 3),
+(224, 2, 36.1680, 'Merenje broj 224 u okviru laboratorijskog izvodjenja.', 4),
+(225, 1, 36.3250, 'Merenje broj 225 u okviru laboratorijskog izvodjenja.', 5),
+(226, 2, 36.4820, 'Merenje broj 226 u okviru laboratorijskog izvodjenja.', 6),
+(227, 1, 36.6390, 'Merenje broj 227 u okviru laboratorijskog izvodjenja.', 7),
+(228, 2, 36.7960, 'Merenje broj 228 u okviru laboratorijskog izvodjenja.', 8),
+(229, 1, 36.9530, 'Merenje broj 229 u okviru laboratorijskog izvodjenja.', 9),
+(230, 2, 37.1100, 'Merenje broj 230 u okviru laboratorijskog izvodjenja.', 10),
+(231, 1, 37.2670, 'Merenje broj 231 u okviru laboratorijskog izvodjenja.', 11),
+(232, 2, 37.4240, 'Merenje broj 232 u okviru laboratorijskog izvodjenja.', 12),
+(233, 1, 37.5810, 'Merenje broj 233 u okviru laboratorijskog izvodjenja.', 13),
+(234, 2, 37.7380, 'Merenje broj 234 u okviru laboratorijskog izvodjenja.', 14),
+(235, 1, 37.8950, 'Merenje broj 235 u okviru laboratorijskog izvodjenja.', 15),
+(236, 2, 38.0520, 'Merenje broj 236 u okviru laboratorijskog izvodjenja.', 16),
+(237, 1, 38.2090, 'Merenje broj 237 u okviru laboratorijskog izvodjenja.', 17),
+(238, 2, 38.3660, 'Merenje broj 238 u okviru laboratorijskog izvodjenja.', 18),
+(239, 1, 38.5230, 'Merenje broj 239 u okviru laboratorijskog izvodjenja.', 19),
+(240, 2, 38.6800, 'Merenje broj 240 u okviru laboratorijskog izvodjenja.', 20),
+(241, 1, 38.8370, 'Merenje broj 241 u okviru laboratorijskog izvodjenja.', 1),
+(242, 2, 38.9940, 'Merenje broj 242 u okviru laboratorijskog izvodjenja.', 2),
+(243, 1, 39.1510, 'Merenje broj 243 u okviru laboratorijskog izvodjenja.', 3),
+(244, 2, 39.3080, 'Merenje broj 244 u okviru laboratorijskog izvodjenja.', 4),
+(245, 1, 39.4650, 'Merenje broj 245 u okviru laboratorijskog izvodjenja.', 5),
+(246, 2, 39.6220, 'Merenje broj 246 u okviru laboratorijskog izvodjenja.', 6),
+(247, 1, 39.7790, 'Merenje broj 247 u okviru laboratorijskog izvodjenja.', 7),
+(248, 2, 39.9360, 'Merenje broj 248 u okviru laboratorijskog izvodjenja.', 8),
+(249, 1, 40.0930, 'Merenje broj 249 u okviru laboratorijskog izvodjenja.', 9),
+(250, 2, 40.2500, 'Merenje broj 250 u okviru laboratorijskog izvodjenja.', 10),
+(251, 1, 40.4070, 'Merenje broj 251 u okviru laboratorijskog izvodjenja.', 11),
+(252, 2, 40.5640, 'Merenje broj 252 u okviru laboratorijskog izvodjenja.', 12),
+(253, 1, 40.7210, 'Merenje broj 253 u okviru laboratorijskog izvodjenja.', 13),
+(254, 2, 40.8780, 'Merenje broj 254 u okviru laboratorijskog izvodjenja.', 14),
+(255, 1, 41.0350, 'Merenje broj 255 u okviru laboratorijskog izvodjenja.', 15),
+(256, 2, 41.1920, 'Merenje broj 256 u okviru laboratorijskog izvodjenja.', 16),
+(257, 1, 41.3490, 'Merenje broj 257 u okviru laboratorijskog izvodjenja.', 17),
+(258, 2, 41.5060, 'Merenje broj 258 u okviru laboratorijskog izvodjenja.', 18),
+(259, 1, 41.6630, 'Merenje broj 259 u okviru laboratorijskog izvodjenja.', 19),
+(260, 2, 41.8200, 'Merenje broj 260 u okviru laboratorijskog izvodjenja.', 20),
+(261, 1, 41.9770, 'Merenje broj 261 u okviru laboratorijskog izvodjenja.', 1),
+(262, 2, 42.1340, 'Merenje broj 262 u okviru laboratorijskog izvodjenja.', 2),
+(263, 1, 42.2910, 'Merenje broj 263 u okviru laboratorijskog izvodjenja.', 3),
+(264, 2, 42.4480, 'Merenje broj 264 u okviru laboratorijskog izvodjenja.', 4),
+(265, 1, 42.6050, 'Merenje broj 265 u okviru laboratorijskog izvodjenja.', 5),
+(266, 2, 42.7620, 'Merenje broj 266 u okviru laboratorijskog izvodjenja.', 6),
+(267, 1, 42.9190, 'Merenje broj 267 u okviru laboratorijskog izvodjenja.', 7),
+(268, 2, 43.0760, 'Merenje broj 268 u okviru laboratorijskog izvodjenja.', 8),
+(269, 1, 43.2330, 'Merenje broj 269 u okviru laboratorijskog izvodjenja.', 9),
+(270, 2, 43.3900, 'Merenje broj 270 u okviru laboratorijskog izvodjenja.', 10),
+(271, 1, 43.5470, 'Merenje broj 271 u okviru laboratorijskog izvodjenja.', 11),
+(272, 2, 43.7040, 'Merenje broj 272 u okviru laboratorijskog izvodjenja.', 12),
+(273, 1, 43.8610, 'Merenje broj 273 u okviru laboratorijskog izvodjenja.', 13),
+(274, 2, 44.0180, 'Merenje broj 274 u okviru laboratorijskog izvodjenja.', 14),
+(275, 1, 44.1750, 'Merenje broj 275 u okviru laboratorijskog izvodjenja.', 15),
+(276, 2, 44.3320, 'Merenje broj 276 u okviru laboratorijskog izvodjenja.', 16),
+(277, 1, 44.4890, 'Merenje broj 277 u okviru laboratorijskog izvodjenja.', 17),
+(278, 2, 44.6460, 'Merenje broj 278 u okviru laboratorijskog izvodjenja.', 18),
+(279, 1, 44.8030, 'Merenje broj 279 u okviru laboratorijskog izvodjenja.', 19),
+(280, 2, 44.9600, 'Merenje broj 280 u okviru laboratorijskog izvodjenja.', 20),
+(281, 1, 45.1170, 'Merenje broj 281 u okviru laboratorijskog izvodjenja.', 1),
+(282, 2, 45.2740, 'Merenje broj 282 u okviru laboratorijskog izvodjenja.', 2),
+(283, 1, 45.4310, 'Merenje broj 283 u okviru laboratorijskog izvodjenja.', 3),
+(284, 2, 45.5880, 'Merenje broj 284 u okviru laboratorijskog izvodjenja.', 4),
+(285, 1, 45.7450, 'Merenje broj 285 u okviru laboratorijskog izvodjenja.', 5),
+(286, 2, 45.9020, 'Merenje broj 286 u okviru laboratorijskog izvodjenja.', 6),
+(287, 1, 46.0590, 'Merenje broj 287 u okviru laboratorijskog izvodjenja.', 7),
+(288, 2, 46.2160, 'Merenje broj 288 u okviru laboratorijskog izvodjenja.', 8),
+(289, 1, 46.3730, 'Merenje broj 289 u okviru laboratorijskog izvodjenja.', 9),
+(290, 2, 46.5300, 'Merenje broj 290 u okviru laboratorijskog izvodjenja.', 10),
+(291, 1, 46.6870, 'Merenje broj 291 u okviru laboratorijskog izvodjenja.', 11),
+(292, 2, 46.8440, 'Merenje broj 292 u okviru laboratorijskog izvodjenja.', 12),
+(293, 1, 47.0010, 'Merenje broj 293 u okviru laboratorijskog izvodjenja.', 13),
+(294, 2, 47.1580, 'Merenje broj 294 u okviru laboratorijskog izvodjenja.', 14),
+(295, 1, 47.3150, 'Merenje broj 295 u okviru laboratorijskog izvodjenja.', 15),
+(296, 2, 47.4720, 'Merenje broj 296 u okviru laboratorijskog izvodjenja.', 16),
+(297, 1, 47.6290, 'Merenje broj 297 u okviru laboratorijskog izvodjenja.', 17),
+(298, 2, 47.7860, 'Merenje broj 298 u okviru laboratorijskog izvodjenja.', 18),
+(299, 1, 47.9430, 'Merenje broj 299 u okviru laboratorijskog izvodjenja.', 19),
+(300, 2, 48.1000, 'Merenje broj 300 u okviru laboratorijskog izvodjenja.', 20);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `merenje_elektricnog_kola`
+--
+
+DROP TABLE IF EXISTS `merenje_elektricnog_kola`;
+CREATE TABLE `merenje_elektricnog_kola` (
+  `merenje_id` int(11) NOT NULL,
+  `elektricno_kolo_id` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `merenje_elektricnog_kola`
+--
+
+INSERT INTO `merenje_elektricnog_kola` (`merenje_id`, `elektricno_kolo_id`) VALUES
+(1, 1),
+(2, 2),
+(3, 3),
+(4, 4),
+(5, 5),
+(6, 6),
+(7, 7),
+(8, 8),
+(9, 9),
+(10, 10),
+(11, 11),
+(12, 12),
+(13, 13),
+(14, 14),
+(15, 15),
+(16, 16),
+(17, 17),
+(18, 18),
+(19, 19),
+(20, 20),
+(21, 21),
+(22, 22),
+(23, 23),
+(24, 24),
+(25, 25),
+(26, 26),
+(27, 27),
+(28, 28),
+(29, 29),
+(30, 30),
+(31, 31),
+(32, 32),
+(33, 33),
+(34, 34),
+(35, 35),
+(36, 36),
+(37, 37),
+(38, 38),
+(39, 39),
+(40, 40),
+(41, 41),
+(42, 42),
+(43, 43),
+(44, 44),
+(45, 45),
+(46, 46),
+(47, 47),
+(48, 48),
+(49, 49),
+(50, 50),
+(51, 51),
+(52, 52),
+(53, 53),
+(54, 54),
+(55, 55),
+(56, 56),
+(57, 57),
+(58, 58),
+(59, 59),
+(60, 60),
+(61, 61),
+(62, 62),
+(63, 63),
+(64, 64),
+(65, 65),
+(66, 66),
+(67, 67),
+(68, 68),
+(69, 69),
+(70, 70),
+(71, 71),
+(72, 72),
+(73, 73),
+(74, 74),
+(75, 75),
+(76, 76),
+(77, 77),
+(78, 78),
+(79, 79),
+(80, 80),
+(81, 81),
+(82, 82),
+(83, 83),
+(84, 84),
+(85, 85),
+(86, 86),
+(87, 87),
+(88, 88),
+(89, 89),
+(90, 90),
+(91, 91),
+(92, 92),
+(93, 93),
+(94, 94),
+(95, 95),
+(96, 96),
+(97, 97),
+(98, 98),
+(99, 99),
+(100, 100);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `merenje_prototipa`
+--
+
+DROP TABLE IF EXISTS `merenje_prototipa`;
+CREATE TABLE `merenje_prototipa` (
+  `merenje_id` int(11) NOT NULL,
+  `prototip_id` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `merenje_prototipa`
+--
+
+INSERT INTO `merenje_prototipa` (`merenje_id`, `prototip_id`) VALUES
+(201, 1),
+(202, 2),
+(203, 3),
+(204, 4),
+(205, 5),
+(206, 6),
+(207, 7),
+(208, 8),
+(209, 9),
+(210, 10),
+(211, 11),
+(212, 12),
+(213, 13),
+(214, 14),
+(215, 15),
+(216, 16),
+(217, 17),
+(218, 18),
+(219, 19),
+(220, 20),
+(221, 21),
+(222, 22),
+(223, 23),
+(224, 24),
+(225, 25),
+(226, 26),
+(227, 27),
+(228, 28),
+(229, 29),
+(230, 30),
+(231, 31),
+(232, 32),
+(233, 33),
+(234, 34),
+(235, 35),
+(236, 36),
+(237, 37),
+(238, 38),
+(239, 39),
+(240, 40),
+(241, 41),
+(242, 42),
+(243, 43),
+(244, 44),
+(245, 45),
+(246, 46),
+(247, 47),
+(248, 48),
+(249, 49),
+(250, 50),
+(251, 51),
+(252, 52),
+(253, 53),
+(254, 54),
+(255, 55),
+(256, 56),
+(257, 57),
+(258, 58),
+(259, 59),
+(260, 60),
+(261, 61),
+(262, 62),
+(263, 63),
+(264, 64),
+(265, 65),
+(266, 66),
+(267, 67),
+(268, 68),
+(269, 69),
+(270, 70),
+(271, 71),
+(272, 72),
+(273, 73),
+(274, 74),
+(275, 75),
+(276, 76),
+(277, 77),
+(278, 78),
+(279, 79),
+(280, 80),
+(281, 81),
+(282, 82),
+(283, 83),
+(284, 84),
+(285, 85),
+(286, 86),
+(287, 87),
+(288, 88),
+(289, 89),
+(290, 90),
+(291, 91),
+(292, 92),
+(293, 93),
+(294, 94),
+(295, 95),
+(296, 96),
+(297, 97),
+(298, 98),
+(299, 99),
+(300, 100);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `merenje_senzora`
+--
+
+DROP TABLE IF EXISTS `merenje_senzora`;
+CREATE TABLE `merenje_senzora` (
+  `merenje_id` int(11) NOT NULL,
+  `senzor_id` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `merenje_senzora`
+--
+
+INSERT INTO `merenje_senzora` (`merenje_id`, `senzor_id`) VALUES
+(101, 1),
+(102, 2),
+(103, 3),
+(104, 4),
+(105, 5),
+(106, 6),
+(107, 7),
+(108, 8),
+(109, 9),
+(110, 10),
+(111, 11),
+(112, 12),
+(113, 13),
+(114, 14),
+(115, 15),
+(116, 16),
+(117, 17),
+(118, 18),
+(119, 19),
+(120, 20),
+(121, 21),
+(122, 22),
+(123, 23),
+(124, 24),
+(125, 25),
+(126, 26),
+(127, 27),
+(128, 28),
+(129, 29),
+(130, 30),
+(131, 31),
+(132, 32),
+(133, 33),
+(134, 34),
+(135, 35),
+(136, 36),
+(137, 37),
+(138, 38),
+(139, 39),
+(140, 40),
+(141, 41),
+(142, 42),
+(143, 43),
+(144, 44),
+(145, 45),
+(146, 46),
+(147, 47),
+(148, 48),
+(149, 49),
+(150, 50),
+(151, 51),
+(152, 52),
+(153, 53),
+(154, 54),
+(155, 55),
+(156, 56),
+(157, 57),
+(158, 58),
+(159, 59),
+(160, 60),
+(161, 61),
+(162, 62),
+(163, 63),
+(164, 64),
+(165, 65),
+(166, 66),
+(167, 67),
+(168, 68),
+(169, 69),
+(170, 70),
+(171, 71),
+(172, 72),
+(173, 73),
+(174, 74),
+(175, 75),
+(176, 76),
+(177, 77),
+(178, 78),
+(179, 79),
+(180, 80),
+(181, 81),
+(182, 82),
+(183, 83),
+(184, 84),
+(185, 85),
+(186, 86),
+(187, 87),
+(188, 88),
+(189, 89),
+(190, 90),
+(191, 91),
+(192, 92),
+(193, 93),
+(194, 94),
+(195, 95),
+(196, 96),
+(197, 97),
+(198, 98),
+(199, 99),
+(200, 100);
 
 -- --------------------------------------------------------
 
@@ -1766,6 +2868,7 @@ INSERT INTO `merenje` (`merenje_id`, `ispitivanje_id`, `tip_merenja_id`, `rezult
 -- Table structure for table `merna_jedinica`
 --
 
+DROP TABLE IF EXISTS `merna_jedinica`;
 CREATE TABLE `merna_jedinica` (
   `merna_jedinica_id` int(11) NOT NULL,
   `naziv` varchar(50) NOT NULL
@@ -1803,6 +2906,7 @@ INSERT INTO `merna_jedinica` (`merna_jedinica_id`, `naziv`) VALUES
 -- Stand-in structure for view `planirani_eksperimenti`
 -- (See below for the actual view)
 --
+DROP VIEW IF EXISTS `planirani_eksperimenti`;
 CREATE TABLE `planirani_eksperimenti` (
 `naziv` varchar(100)
 ,`ciljevi` text
@@ -1812,327 +2916,10 @@ CREATE TABLE `planirani_eksperimenti` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `proba_prototip`
---
-
-CREATE TABLE `proba_prototip` (
-  `proba_prototip_id` int(11) NOT NULL,
-  `prototip_id` int(11) NOT NULL,
-  `rezultat` text DEFAULT NULL,
-  `datum` date DEFAULT NULL,
-  `status` varchar(50) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `proba_prototip`
---
-
-INSERT INTO `proba_prototip` (`proba_prototip_id`, `prototip_id`, `rezultat`, `datum`, `status`) VALUES
-(1, 1, 'Prototip je stabilno radio tokom osnovnog testa.', '2024-01-08', 'planirana'),
-(2, 2, 'Uoceno je malo odstupanje u izlaznom naponu pri vecem opterecenju.', '2024-01-11', 'u toku'),
-(3, 3, 'Merenja su u skladu sa ocekivanim teorijskim vrednostima.', '2024-01-14', 'uspesna'),
-(4, 4, 'Potrebno je poboljsati filtriranje signala.', '2024-01-17', 'delimicno uspesna'),
-(5, 5, 'Prototip je prosao test funkcionalnosti.', '2024-01-20', 'neuspesna'),
-(6, 6, 'Primeceno je zagrevanje jedne komponente tokom duzeg rada.', '2024-01-23', 'planirana'),
-(7, 7, 'Izlazni signal je stabilan i ponovljiv.', '2024-01-26', 'u toku'),
-(8, 8, 'Potrebna je dodatna kalibracija senzorskog dela.', '2024-01-29', 'uspesna'),
-(9, 9, 'Sklop reaguje pravilno na promenu ulaznog signala.', '2024-02-01', 'delimicno uspesna'),
-(10, 10, 'Rezultat pokazuje prihvatljivo odstupanje od proracuna.', '2024-02-04', 'neuspesna'),
-(11, 11, 'Prototip je stabilno radio tokom osnovnog testa.', '2024-02-07', 'planirana'),
-(12, 12, 'Uoceno je malo odstupanje u izlaznom naponu pri vecem opterecenju.', '2024-02-10', 'u toku'),
-(13, 13, 'Merenja su u skladu sa ocekivanim teorijskim vrednostima.', '2024-02-13', 'uspesna'),
-(14, 14, 'Potrebno je poboljsati filtriranje signala.', '2024-02-16', 'delimicno uspesna'),
-(15, 15, 'Prototip je prosao test funkcionalnosti.', '2024-02-19', 'neuspesna'),
-(16, 16, 'Primeceno je zagrevanje jedne komponente tokom duzeg rada.', '2024-02-22', 'planirana'),
-(17, 17, 'Izlazni signal je stabilan i ponovljiv.', '2024-02-25', 'u toku'),
-(18, 18, 'Potrebna je dodatna kalibracija senzorskog dela.', '2024-02-28', 'uspesna'),
-(19, 19, 'Sklop reaguje pravilno na promenu ulaznog signala.', '2024-03-02', 'delimicno uspesna'),
-(20, 20, 'Rezultat pokazuje prihvatljivo odstupanje od proracuna.', '2024-03-05', 'neuspesna'),
-(21, 21, 'Prototip je stabilno radio tokom osnovnog testa.', '2024-03-08', 'planirana'),
-(22, 22, 'Uoceno je malo odstupanje u izlaznom naponu pri vecem opterecenju.', '2024-03-11', 'u toku'),
-(23, 23, 'Merenja su u skladu sa ocekivanim teorijskim vrednostima.', '2024-03-14', 'uspesna'),
-(24, 24, 'Potrebno je poboljsati filtriranje signala.', '2024-03-17', 'delimicno uspesna'),
-(25, 25, 'Prototip je prosao test funkcionalnosti.', '2024-03-20', 'neuspesna'),
-(26, 26, 'Primeceno je zagrevanje jedne komponente tokom duzeg rada.', '2024-03-23', 'planirana'),
-(27, 27, 'Izlazni signal je stabilan i ponovljiv.', '2024-03-26', 'u toku'),
-(28, 28, 'Potrebna je dodatna kalibracija senzorskog dela.', '2024-03-29', 'uspesna'),
-(29, 29, 'Sklop reaguje pravilno na promenu ulaznog signala.', '2024-04-01', 'delimicno uspesna'),
-(30, 30, 'Rezultat pokazuje prihvatljivo odstupanje od proracuna.', '2024-04-04', 'neuspesna'),
-(31, 31, 'Prototip je stabilno radio tokom osnovnog testa.', '2024-04-07', 'planirana'),
-(32, 32, 'Uoceno je malo odstupanje u izlaznom naponu pri vecem opterecenju.', '2024-04-10', 'u toku'),
-(33, 33, 'Merenja su u skladu sa ocekivanim teorijskim vrednostima.', '2024-04-13', 'uspesna'),
-(34, 34, 'Potrebno je poboljsati filtriranje signala.', '2024-04-16', 'delimicno uspesna'),
-(35, 35, 'Prototip je prosao test funkcionalnosti.', '2024-04-19', 'neuspesna'),
-(36, 36, 'Primeceno je zagrevanje jedne komponente tokom duzeg rada.', '2024-04-22', 'planirana'),
-(37, 37, 'Izlazni signal je stabilan i ponovljiv.', '2024-04-25', 'u toku'),
-(38, 38, 'Potrebna je dodatna kalibracija senzorskog dela.', '2024-04-28', 'uspesna'),
-(39, 39, 'Sklop reaguje pravilno na promenu ulaznog signala.', '2024-05-01', 'delimicno uspesna'),
-(40, 40, 'Rezultat pokazuje prihvatljivo odstupanje od proracuna.', '2024-05-04', 'neuspesna'),
-(41, 41, 'Prototip je stabilno radio tokom osnovnog testa.', '2024-05-07', 'planirana'),
-(42, 42, 'Uoceno je malo odstupanje u izlaznom naponu pri vecem opterecenju.', '2024-05-10', 'u toku'),
-(43, 43, 'Merenja su u skladu sa ocekivanim teorijskim vrednostima.', '2024-05-13', 'uspesna'),
-(44, 44, 'Potrebno je poboljsati filtriranje signala.', '2024-05-16', 'delimicno uspesna'),
-(45, 45, 'Prototip je prosao test funkcionalnosti.', '2024-05-19', 'neuspesna'),
-(46, 46, 'Primeceno je zagrevanje jedne komponente tokom duzeg rada.', '2024-05-22', 'planirana'),
-(47, 47, 'Izlazni signal je stabilan i ponovljiv.', '2024-05-25', 'u toku'),
-(48, 48, 'Potrebna je dodatna kalibracija senzorskog dela.', '2024-05-28', 'uspesna'),
-(49, 49, 'Sklop reaguje pravilno na promenu ulaznog signala.', '2024-05-31', 'delimicno uspesna'),
-(50, 50, 'Rezultat pokazuje prihvatljivo odstupanje od proracuna.', '2024-06-03', 'neuspesna'),
-(51, 51, 'Prototip je stabilno radio tokom osnovnog testa.', '2024-06-06', 'planirana'),
-(52, 52, 'Uoceno je malo odstupanje u izlaznom naponu pri vecem opterecenju.', '2024-06-09', 'u toku'),
-(53, 53, 'Merenja su u skladu sa ocekivanim teorijskim vrednostima.', '2024-06-12', 'uspesna'),
-(54, 54, 'Potrebno je poboljsati filtriranje signala.', '2024-06-15', 'delimicno uspesna'),
-(55, 55, 'Prototip je prosao test funkcionalnosti.', '2024-06-18', 'neuspesna'),
-(56, 56, 'Primeceno je zagrevanje jedne komponente tokom duzeg rada.', '2024-06-21', 'planirana'),
-(57, 57, 'Izlazni signal je stabilan i ponovljiv.', '2024-06-24', 'u toku'),
-(58, 58, 'Potrebna je dodatna kalibracija senzorskog dela.', '2024-06-27', 'uspesna'),
-(59, 59, 'Sklop reaguje pravilno na promenu ulaznog signala.', '2024-06-30', 'delimicno uspesna'),
-(60, 60, 'Rezultat pokazuje prihvatljivo odstupanje od proracuna.', '2024-07-03', 'neuspesna'),
-(61, 61, 'Prototip je stabilno radio tokom osnovnog testa.', '2024-07-06', 'planirana'),
-(62, 62, 'Uoceno je malo odstupanje u izlaznom naponu pri vecem opterecenju.', '2024-07-09', 'u toku'),
-(63, 63, 'Merenja su u skladu sa ocekivanim teorijskim vrednostima.', '2024-07-12', 'uspesna'),
-(64, 64, 'Potrebno je poboljsati filtriranje signala.', '2024-07-15', 'delimicno uspesna'),
-(65, 65, 'Prototip je prosao test funkcionalnosti.', '2024-07-18', 'neuspesna'),
-(66, 66, 'Primeceno je zagrevanje jedne komponente tokom duzeg rada.', '2024-07-21', 'planirana'),
-(67, 67, 'Izlazni signal je stabilan i ponovljiv.', '2024-07-24', 'u toku'),
-(68, 68, 'Potrebna je dodatna kalibracija senzorskog dela.', '2024-07-27', 'uspesna'),
-(69, 69, 'Sklop reaguje pravilno na promenu ulaznog signala.', '2024-07-30', 'delimicno uspesna'),
-(70, 70, 'Rezultat pokazuje prihvatljivo odstupanje od proracuna.', '2024-08-02', 'neuspesna'),
-(71, 71, 'Prototip je stabilno radio tokom osnovnog testa.', '2024-08-05', 'planirana'),
-(72, 72, 'Uoceno je malo odstupanje u izlaznom naponu pri vecem opterecenju.', '2024-08-08', 'u toku'),
-(73, 73, 'Merenja su u skladu sa ocekivanim teorijskim vrednostima.', '2024-08-11', 'uspesna'),
-(74, 74, 'Potrebno je poboljsati filtriranje signala.', '2024-08-14', 'delimicno uspesna'),
-(75, 75, 'Prototip je prosao test funkcionalnosti.', '2024-08-17', 'neuspesna'),
-(76, 76, 'Primeceno je zagrevanje jedne komponente tokom duzeg rada.', '2024-08-20', 'planirana'),
-(77, 77, 'Izlazni signal je stabilan i ponovljiv.', '2024-08-23', 'u toku'),
-(78, 78, 'Potrebna je dodatna kalibracija senzorskog dela.', '2024-08-26', 'uspesna'),
-(79, 79, 'Sklop reaguje pravilno na promenu ulaznog signala.', '2024-08-29', 'delimicno uspesna'),
-(80, 80, 'Rezultat pokazuje prihvatljivo odstupanje od proracuna.', '2024-09-01', 'neuspesna'),
-(81, 81, 'Prototip je stabilno radio tokom osnovnog testa.', '2024-09-04', 'planirana'),
-(82, 82, 'Uoceno je malo odstupanje u izlaznom naponu pri vecem opterecenju.', '2024-09-07', 'u toku'),
-(83, 83, 'Merenja su u skladu sa ocekivanim teorijskim vrednostima.', '2024-09-10', 'uspesna'),
-(84, 84, 'Potrebno je poboljsati filtriranje signala.', '2024-09-13', 'delimicno uspesna'),
-(85, 85, 'Prototip je prosao test funkcionalnosti.', '2024-09-16', 'neuspesna'),
-(86, 86, 'Primeceno je zagrevanje jedne komponente tokom duzeg rada.', '2024-09-19', 'planirana'),
-(87, 87, 'Izlazni signal je stabilan i ponovljiv.', '2024-09-22', 'u toku'),
-(88, 88, 'Potrebna je dodatna kalibracija senzorskog dela.', '2024-09-25', 'uspesna'),
-(89, 89, 'Sklop reaguje pravilno na promenu ulaznog signala.', '2024-09-28', 'delimicno uspesna'),
-(90, 90, 'Rezultat pokazuje prihvatljivo odstupanje od proracuna.', '2024-10-01', 'neuspesna'),
-(91, 91, 'Prototip je stabilno radio tokom osnovnog testa.', '2024-10-04', 'planirana'),
-(92, 92, 'Uoceno je malo odstupanje u izlaznom naponu pri vecem opterecenju.', '2024-10-07', 'u toku'),
-(93, 93, 'Merenja su u skladu sa ocekivanim teorijskim vrednostima.', '2024-10-10', 'uspesna'),
-(94, 94, 'Potrebno je poboljsati filtriranje signala.', '2024-10-13', 'delimicno uspesna'),
-(95, 95, 'Prototip je prosao test funkcionalnosti.', '2024-10-16', 'neuspesna'),
-(96, 96, 'Primeceno je zagrevanje jedne komponente tokom duzeg rada.', '2024-10-19', 'planirana'),
-(97, 97, 'Izlazni signal je stabilan i ponovljiv.', '2024-10-22', 'u toku'),
-(98, 98, 'Potrebna je dodatna kalibracija senzorskog dela.', '2024-10-25', 'uspesna'),
-(99, 99, 'Sklop reaguje pravilno na promenu ulaznog signala.', '2024-10-28', 'delimicno uspesna'),
-(101, 1, 'Prototip je stabilno radio tokom osnovnog testa.', '2024-01-08', 'planirana'),
-(102, 2, 'Uoceno je malo odstupanje u izlaznom naponu pri vecem opterecenju.', '2024-01-11', 'u toku'),
-(103, 3, 'Merenja su u skladu sa ocekivanim teorijskim vrednostima.', '2024-01-14', 'uspesna'),
-(104, 4, 'Potrebno je poboljsati filtriranje signala.', '2024-01-17', 'delimicno uspesna'),
-(105, 5, 'Prototip je prosao test funkcionalnosti.', '2024-01-20', 'neuspesna'),
-(106, 6, 'Primeceno je zagrevanje jedne komponente tokom duzeg rada.', '2024-01-23', 'planirana'),
-(107, 7, 'Izlazni signal je stabilan i ponovljiv.', '2024-01-26', 'u toku'),
-(108, 8, 'Potrebna je dodatna kalibracija senzorskog dela.', '2024-01-29', 'uspesna'),
-(109, 9, 'Sklop reaguje pravilno na promenu ulaznog signala.', '2024-02-01', 'delimicno uspesna'),
-(110, 10, 'Rezultat pokazuje prihvatljivo odstupanje od proracuna.', '2024-02-04', 'neuspesna'),
-(111, 11, 'Prototip je stabilno radio tokom osnovnog testa.', '2024-02-07', 'planirana'),
-(112, 12, 'Uoceno je malo odstupanje u izlaznom naponu pri vecem opterecenju.', '2024-02-10', 'u toku'),
-(113, 13, 'Merenja su u skladu sa ocekivanim teorijskim vrednostima.', '2024-02-13', 'uspesna'),
-(114, 14, 'Potrebno je poboljsati filtriranje signala.', '2024-02-16', 'delimicno uspesna'),
-(115, 15, 'Prototip je prosao test funkcionalnosti.', '2024-02-19', 'neuspesna'),
-(116, 16, 'Primeceno je zagrevanje jedne komponente tokom duzeg rada.', '2024-02-22', 'planirana'),
-(117, 17, 'Izlazni signal je stabilan i ponovljiv.', '2024-02-25', 'u toku'),
-(118, 18, 'Potrebna je dodatna kalibracija senzorskog dela.', '2024-02-28', 'uspesna'),
-(119, 19, 'Sklop reaguje pravilno na promenu ulaznog signala.', '2024-03-02', 'delimicno uspesna'),
-(120, 20, 'Rezultat pokazuje prihvatljivo odstupanje od proracuna.', '2024-03-05', 'neuspesna'),
-(121, 21, 'Prototip je stabilno radio tokom osnovnog testa.', '2024-03-08', 'planirana'),
-(122, 22, 'Uoceno je malo odstupanje u izlaznom naponu pri vecem opterecenju.', '2024-03-11', 'u toku'),
-(123, 23, 'Merenja su u skladu sa ocekivanim teorijskim vrednostima.', '2024-03-14', 'uspesna'),
-(124, 24, 'Potrebno je poboljsati filtriranje signala.', '2024-03-17', 'delimicno uspesna'),
-(125, 25, 'Prototip je prosao test funkcionalnosti.', '2024-03-20', 'neuspesna'),
-(126, 26, 'Primeceno je zagrevanje jedne komponente tokom duzeg rada.', '2024-03-23', 'planirana'),
-(127, 27, 'Izlazni signal je stabilan i ponovljiv.', '2024-03-26', 'u toku'),
-(128, 28, 'Potrebna je dodatna kalibracija senzorskog dela.', '2024-03-29', 'uspesna'),
-(129, 29, 'Sklop reaguje pravilno na promenu ulaznog signala.', '2024-04-01', 'delimicno uspesna'),
-(130, 30, 'Rezultat pokazuje prihvatljivo odstupanje od proracuna.', '2024-04-04', 'neuspesna'),
-(131, 31, 'Prototip je stabilno radio tokom osnovnog testa.', '2024-04-07', 'planirana'),
-(132, 32, 'Uoceno je malo odstupanje u izlaznom naponu pri vecem opterecenju.', '2024-04-10', 'u toku'),
-(133, 33, 'Merenja su u skladu sa ocekivanim teorijskim vrednostima.', '2024-04-13', 'uspesna'),
-(134, 34, 'Potrebno je poboljsati filtriranje signala.', '2024-04-16', 'delimicno uspesna'),
-(135, 35, 'Prototip je prosao test funkcionalnosti.', '2024-04-19', 'neuspesna'),
-(136, 36, 'Primeceno je zagrevanje jedne komponente tokom duzeg rada.', '2024-04-22', 'planirana'),
-(137, 37, 'Izlazni signal je stabilan i ponovljiv.', '2024-04-25', 'u toku'),
-(138, 38, 'Potrebna je dodatna kalibracija senzorskog dela.', '2024-04-28', 'uspesna'),
-(139, 39, 'Sklop reaguje pravilno na promenu ulaznog signala.', '2024-05-01', 'delimicno uspesna'),
-(140, 40, 'Rezultat pokazuje prihvatljivo odstupanje od proracuna.', '2024-05-04', 'neuspesna'),
-(141, 41, 'Prototip je stabilno radio tokom osnovnog testa.', '2024-05-07', 'planirana'),
-(142, 42, 'Uoceno je malo odstupanje u izlaznom naponu pri vecem opterecenju.', '2024-05-10', 'u toku'),
-(143, 43, 'Merenja su u skladu sa ocekivanim teorijskim vrednostima.', '2024-05-13', 'uspesna'),
-(144, 44, 'Potrebno je poboljsati filtriranje signala.', '2024-05-16', 'delimicno uspesna'),
-(145, 45, 'Prototip je prosao test funkcionalnosti.', '2024-05-19', 'neuspesna'),
-(146, 46, 'Primeceno je zagrevanje jedne komponente tokom duzeg rada.', '2024-05-22', 'planirana'),
-(147, 47, 'Izlazni signal je stabilan i ponovljiv.', '2024-05-25', 'u toku'),
-(148, 48, 'Potrebna je dodatna kalibracija senzorskog dela.', '2024-05-28', 'uspesna'),
-(149, 49, 'Sklop reaguje pravilno na promenu ulaznog signala.', '2024-05-31', 'delimicno uspesna'),
-(150, 50, 'Rezultat pokazuje prihvatljivo odstupanje od proracuna.', '2024-06-03', 'neuspesna'),
-(151, 51, 'Prototip je stabilno radio tokom osnovnog testa.', '2024-06-06', 'planirana'),
-(152, 52, 'Uoceno je malo odstupanje u izlaznom naponu pri vecem opterecenju.', '2024-06-09', 'u toku'),
-(153, 53, 'Merenja su u skladu sa ocekivanim teorijskim vrednostima.', '2024-06-12', 'uspesna'),
-(154, 54, 'Potrebno je poboljsati filtriranje signala.', '2024-06-15', 'delimicno uspesna'),
-(155, 55, 'Prototip je prosao test funkcionalnosti.', '2024-06-18', 'neuspesna'),
-(156, 56, 'Primeceno je zagrevanje jedne komponente tokom duzeg rada.', '2024-06-21', 'planirana'),
-(157, 57, 'Izlazni signal je stabilan i ponovljiv.', '2024-06-24', 'u toku'),
-(158, 58, 'Potrebna je dodatna kalibracija senzorskog dela.', '2024-06-27', 'uspesna'),
-(159, 59, 'Sklop reaguje pravilno na promenu ulaznog signala.', '2024-06-30', 'delimicno uspesna'),
-(160, 60, 'Rezultat pokazuje prihvatljivo odstupanje od proracuna.', '2024-07-03', 'neuspesna'),
-(161, 61, 'Prototip je stabilno radio tokom osnovnog testa.', '2024-07-06', 'planirana'),
-(162, 62, 'Uoceno je malo odstupanje u izlaznom naponu pri vecem opterecenju.', '2024-07-09', 'u toku'),
-(163, 63, 'Merenja su u skladu sa ocekivanim teorijskim vrednostima.', '2024-07-12', 'uspesna'),
-(164, 64, 'Potrebno je poboljsati filtriranje signala.', '2024-07-15', 'delimicno uspesna'),
-(165, 65, 'Prototip je prosao test funkcionalnosti.', '2024-07-18', 'neuspesna'),
-(166, 66, 'Primeceno je zagrevanje jedne komponente tokom duzeg rada.', '2024-07-21', 'planirana'),
-(167, 67, 'Izlazni signal je stabilan i ponovljiv.', '2024-07-24', 'u toku'),
-(168, 68, 'Potrebna je dodatna kalibracija senzorskog dela.', '2024-07-27', 'uspesna'),
-(169, 69, 'Sklop reaguje pravilno na promenu ulaznog signala.', '2024-07-30', 'delimicno uspesna'),
-(170, 70, 'Rezultat pokazuje prihvatljivo odstupanje od proracuna.', '2024-08-02', 'neuspesna'),
-(171, 71, 'Prototip je stabilno radio tokom osnovnog testa.', '2024-08-05', 'planirana'),
-(172, 72, 'Uoceno je malo odstupanje u izlaznom naponu pri vecem opterecenju.', '2024-08-08', 'u toku'),
-(173, 73, 'Merenja su u skladu sa ocekivanim teorijskim vrednostima.', '2024-08-11', 'uspesna'),
-(174, 74, 'Potrebno je poboljsati filtriranje signala.', '2024-08-14', 'delimicno uspesna'),
-(175, 75, 'Prototip je prosao test funkcionalnosti.', '2024-08-17', 'neuspesna'),
-(176, 76, 'Primeceno je zagrevanje jedne komponente tokom duzeg rada.', '2024-08-20', 'planirana'),
-(177, 77, 'Izlazni signal je stabilan i ponovljiv.', '2024-08-23', 'u toku'),
-(178, 78, 'Potrebna je dodatna kalibracija senzorskog dela.', '2024-08-26', 'uspesna'),
-(179, 79, 'Sklop reaguje pravilno na promenu ulaznog signala.', '2024-08-29', 'delimicno uspesna'),
-(180, 80, 'Rezultat pokazuje prihvatljivo odstupanje od proracuna.', '2024-09-01', 'neuspesna'),
-(181, 81, 'Prototip je stabilno radio tokom osnovnog testa.', '2024-09-04', 'planirana'),
-(182, 82, 'Uoceno je malo odstupanje u izlaznom naponu pri vecem opterecenju.', '2024-09-07', 'u toku'),
-(183, 83, 'Merenja su u skladu sa ocekivanim teorijskim vrednostima.', '2024-09-10', 'uspesna'),
-(184, 84, 'Potrebno je poboljsati filtriranje signala.', '2024-09-13', 'delimicno uspesna'),
-(185, 85, 'Prototip je prosao test funkcionalnosti.', '2024-09-16', 'neuspesna'),
-(186, 86, 'Primeceno je zagrevanje jedne komponente tokom duzeg rada.', '2024-09-19', 'planirana'),
-(187, 87, 'Izlazni signal je stabilan i ponovljiv.', '2024-09-22', 'u toku'),
-(188, 88, 'Potrebna je dodatna kalibracija senzorskog dela.', '2024-09-25', 'uspesna'),
-(189, 89, 'Sklop reaguje pravilno na promenu ulaznog signala.', '2024-09-28', 'delimicno uspesna'),
-(190, 90, 'Rezultat pokazuje prihvatljivo odstupanje od proracuna.', '2024-10-01', 'neuspesna'),
-(191, 91, 'Prototip je stabilno radio tokom osnovnog testa.', '2024-10-04', 'planirana'),
-(192, 92, 'Uoceno je malo odstupanje u izlaznom naponu pri vecem opterecenju.', '2024-10-07', 'u toku'),
-(193, 93, 'Merenja su u skladu sa ocekivanim teorijskim vrednostima.', '2024-10-10', 'uspesna'),
-(194, 94, 'Potrebno je poboljsati filtriranje signala.', '2024-10-13', 'delimicno uspesna'),
-(195, 95, 'Prototip je prosao test funkcionalnosti.', '2024-10-16', 'neuspesna'),
-(196, 96, 'Primeceno je zagrevanje jedne komponente tokom duzeg rada.', '2024-10-19', 'planirana'),
-(197, 97, 'Izlazni signal je stabilan i ponovljiv.', '2024-10-22', 'u toku'),
-(198, 98, 'Potrebna je dodatna kalibracija senzorskog dela.', '2024-10-25', 'uspesna'),
-(199, 99, 'Sklop reaguje pravilno na promenu ulaznog signala.', '2024-10-28', 'delimicno uspesna'),
-(201, 1, 'Prototip je stabilno radio tokom osnovnog testa.', '2024-01-08', 'planirana'),
-(202, 2, 'Uoceno je malo odstupanje u izlaznom naponu pri vecem opterecenju.', '2024-01-11', 'u toku'),
-(203, 3, 'Merenja su u skladu sa ocekivanim teorijskim vrednostima.', '2024-01-14', 'uspesna'),
-(204, 4, 'Potrebno je poboljsati filtriranje signala.', '2024-01-17', 'delimicno uspesna'),
-(205, 5, 'Prototip je prosao test funkcionalnosti.', '2024-01-20', 'neuspesna'),
-(206, 6, 'Primeceno je zagrevanje jedne komponente tokom duzeg rada.', '2024-01-23', 'planirana'),
-(207, 7, 'Izlazni signal je stabilan i ponovljiv.', '2024-01-26', 'u toku'),
-(208, 8, 'Potrebna je dodatna kalibracija senzorskog dela.', '2024-01-29', 'uspesna'),
-(209, 9, 'Sklop reaguje pravilno na promenu ulaznog signala.', '2024-02-01', 'delimicno uspesna'),
-(210, 10, 'Rezultat pokazuje prihvatljivo odstupanje od proracuna.', '2024-02-04', 'neuspesna'),
-(211, 11, 'Prototip je stabilno radio tokom osnovnog testa.', '2024-02-07', 'planirana'),
-(212, 12, 'Uoceno je malo odstupanje u izlaznom naponu pri vecem opterecenju.', '2024-02-10', 'u toku'),
-(213, 13, 'Merenja su u skladu sa ocekivanim teorijskim vrednostima.', '2024-02-13', 'uspesna'),
-(214, 14, 'Potrebno je poboljsati filtriranje signala.', '2024-02-16', 'delimicno uspesna'),
-(215, 15, 'Prototip je prosao test funkcionalnosti.', '2024-02-19', 'neuspesna'),
-(216, 16, 'Primeceno je zagrevanje jedne komponente tokom duzeg rada.', '2024-02-22', 'planirana'),
-(217, 17, 'Izlazni signal je stabilan i ponovljiv.', '2024-02-25', 'u toku'),
-(218, 18, 'Potrebna je dodatna kalibracija senzorskog dela.', '2024-02-28', 'uspesna'),
-(219, 19, 'Sklop reaguje pravilno na promenu ulaznog signala.', '2024-03-02', 'delimicno uspesna'),
-(220, 20, 'Rezultat pokazuje prihvatljivo odstupanje od proracuna.', '2024-03-05', 'neuspesna'),
-(221, 21, 'Prototip je stabilno radio tokom osnovnog testa.', '2024-03-08', 'planirana'),
-(222, 22, 'Uoceno je malo odstupanje u izlaznom naponu pri vecem opterecenju.', '2024-03-11', 'u toku'),
-(223, 23, 'Merenja su u skladu sa ocekivanim teorijskim vrednostima.', '2024-03-14', 'uspesna'),
-(224, 24, 'Potrebno je poboljsati filtriranje signala.', '2024-03-17', 'delimicno uspesna'),
-(225, 25, 'Prototip je prosao test funkcionalnosti.', '2024-03-20', 'neuspesna'),
-(226, 26, 'Primeceno je zagrevanje jedne komponente tokom duzeg rada.', '2024-03-23', 'planirana'),
-(227, 27, 'Izlazni signal je stabilan i ponovljiv.', '2024-03-26', 'u toku'),
-(228, 28, 'Potrebna je dodatna kalibracija senzorskog dela.', '2024-03-29', 'uspesna'),
-(229, 29, 'Sklop reaguje pravilno na promenu ulaznog signala.', '2024-04-01', 'delimicno uspesna'),
-(230, 30, 'Rezultat pokazuje prihvatljivo odstupanje od proracuna.', '2024-04-04', 'neuspesna'),
-(231, 31, 'Prototip je stabilno radio tokom osnovnog testa.', '2024-04-07', 'planirana'),
-(232, 32, 'Uoceno je malo odstupanje u izlaznom naponu pri vecem opterecenju.', '2024-04-10', 'u toku'),
-(233, 33, 'Merenja su u skladu sa ocekivanim teorijskim vrednostima.', '2024-04-13', 'uspesna'),
-(234, 34, 'Potrebno je poboljsati filtriranje signala.', '2024-04-16', 'delimicno uspesna'),
-(235, 35, 'Prototip je prosao test funkcionalnosti.', '2024-04-19', 'neuspesna'),
-(236, 36, 'Primeceno je zagrevanje jedne komponente tokom duzeg rada.', '2024-04-22', 'planirana'),
-(237, 37, 'Izlazni signal je stabilan i ponovljiv.', '2024-04-25', 'u toku'),
-(238, 38, 'Potrebna je dodatna kalibracija senzorskog dela.', '2024-04-28', 'uspesna'),
-(239, 39, 'Sklop reaguje pravilno na promenu ulaznog signala.', '2024-05-01', 'delimicno uspesna'),
-(240, 40, 'Rezultat pokazuje prihvatljivo odstupanje od proracuna.', '2024-05-04', 'neuspesna'),
-(241, 41, 'Prototip je stabilno radio tokom osnovnog testa.', '2024-05-07', 'planirana'),
-(242, 42, 'Uoceno je malo odstupanje u izlaznom naponu pri vecem opterecenju.', '2024-05-10', 'u toku'),
-(243, 43, 'Merenja su u skladu sa ocekivanim teorijskim vrednostima.', '2024-05-13', 'uspesna'),
-(244, 44, 'Potrebno je poboljsati filtriranje signala.', '2024-05-16', 'delimicno uspesna'),
-(245, 45, 'Prototip je prosao test funkcionalnosti.', '2024-05-19', 'neuspesna'),
-(246, 46, 'Primeceno je zagrevanje jedne komponente tokom duzeg rada.', '2024-05-22', 'planirana'),
-(247, 47, 'Izlazni signal je stabilan i ponovljiv.', '2024-05-25', 'u toku'),
-(248, 48, 'Potrebna je dodatna kalibracija senzorskog dela.', '2024-05-28', 'uspesna'),
-(249, 49, 'Sklop reaguje pravilno na promenu ulaznog signala.', '2024-05-31', 'delimicno uspesna'),
-(250, 50, 'Rezultat pokazuje prihvatljivo odstupanje od proracuna.', '2024-06-03', 'neuspesna'),
-(251, 51, 'Prototip je stabilno radio tokom osnovnog testa.', '2024-06-06', 'planirana'),
-(252, 52, 'Uoceno je malo odstupanje u izlaznom naponu pri vecem opterecenju.', '2024-06-09', 'u toku'),
-(253, 53, 'Merenja su u skladu sa ocekivanim teorijskim vrednostima.', '2024-06-12', 'uspesna'),
-(254, 54, 'Potrebno je poboljsati filtriranje signala.', '2024-06-15', 'delimicno uspesna'),
-(255, 55, 'Prototip je prosao test funkcionalnosti.', '2024-06-18', 'neuspesna'),
-(256, 56, 'Primeceno je zagrevanje jedne komponente tokom duzeg rada.', '2024-06-21', 'planirana'),
-(257, 57, 'Izlazni signal je stabilan i ponovljiv.', '2024-06-24', 'u toku'),
-(258, 58, 'Potrebna je dodatna kalibracija senzorskog dela.', '2024-06-27', 'uspesna'),
-(259, 59, 'Sklop reaguje pravilno na promenu ulaznog signala.', '2024-06-30', 'delimicno uspesna'),
-(260, 60, 'Rezultat pokazuje prihvatljivo odstupanje od proracuna.', '2024-07-03', 'neuspesna'),
-(261, 61, 'Prototip je stabilno radio tokom osnovnog testa.', '2024-07-06', 'planirana'),
-(262, 62, 'Uoceno je malo odstupanje u izlaznom naponu pri vecem opterecenju.', '2024-07-09', 'u toku'),
-(263, 63, 'Merenja su u skladu sa ocekivanim teorijskim vrednostima.', '2024-07-12', 'uspesna'),
-(264, 64, 'Potrebno je poboljsati filtriranje signala.', '2024-07-15', 'delimicno uspesna'),
-(265, 65, 'Prototip je prosao test funkcionalnosti.', '2024-07-18', 'neuspesna'),
-(266, 66, 'Primeceno je zagrevanje jedne komponente tokom duzeg rada.', '2024-07-21', 'planirana'),
-(267, 67, 'Izlazni signal je stabilan i ponovljiv.', '2024-07-24', 'u toku'),
-(268, 68, 'Potrebna je dodatna kalibracija senzorskog dela.', '2024-07-27', 'uspesna'),
-(269, 69, 'Sklop reaguje pravilno na promenu ulaznog signala.', '2024-07-30', 'delimicno uspesna'),
-(270, 70, 'Rezultat pokazuje prihvatljivo odstupanje od proracuna.', '2024-08-02', 'neuspesna'),
-(271, 71, 'Prototip je stabilno radio tokom osnovnog testa.', '2024-08-05', 'planirana'),
-(272, 72, 'Uoceno je malo odstupanje u izlaznom naponu pri vecem opterecenju.', '2024-08-08', 'u toku'),
-(273, 73, 'Merenja su u skladu sa ocekivanim teorijskim vrednostima.', '2024-08-11', 'uspesna'),
-(274, 74, 'Potrebno je poboljsati filtriranje signala.', '2024-08-14', 'delimicno uspesna'),
-(275, 75, 'Prototip je prosao test funkcionalnosti.', '2024-08-17', 'neuspesna'),
-(276, 76, 'Primeceno je zagrevanje jedne komponente tokom duzeg rada.', '2024-08-20', 'planirana'),
-(277, 77, 'Izlazni signal je stabilan i ponovljiv.', '2024-08-23', 'u toku'),
-(278, 78, 'Potrebna je dodatna kalibracija senzorskog dela.', '2024-08-26', 'uspesna'),
-(279, 79, 'Sklop reaguje pravilno na promenu ulaznog signala.', '2024-08-29', 'delimicno uspesna'),
-(280, 80, 'Rezultat pokazuje prihvatljivo odstupanje od proracuna.', '2024-09-01', 'neuspesna'),
-(281, 81, 'Prototip je stabilno radio tokom osnovnog testa.', '2024-09-04', 'planirana'),
-(282, 82, 'Uoceno je malo odstupanje u izlaznom naponu pri vecem opterecenju.', '2024-09-07', 'u toku'),
-(283, 83, 'Merenja su u skladu sa ocekivanim teorijskim vrednostima.', '2024-09-10', 'uspesna'),
-(284, 84, 'Potrebno je poboljsati filtriranje signala.', '2024-09-13', 'delimicno uspesna'),
-(285, 85, 'Prototip je prosao test funkcionalnosti.', '2024-09-16', 'neuspesna'),
-(286, 86, 'Primeceno je zagrevanje jedne komponente tokom duzeg rada.', '2024-09-19', 'planirana'),
-(287, 87, 'Izlazni signal je stabilan i ponovljiv.', '2024-09-22', 'u toku'),
-(288, 88, 'Potrebna je dodatna kalibracija senzorskog dela.', '2024-09-25', 'uspesna'),
-(289, 89, 'Sklop reaguje pravilno na promenu ulaznog signala.', '2024-09-28', 'delimicno uspesna'),
-(290, 90, 'Rezultat pokazuje prihvatljivo odstupanje od proracuna.', '2024-10-01', 'neuspesna'),
-(291, 91, 'Prototip je stabilno radio tokom osnovnog testa.', '2024-10-04', 'planirana'),
-(292, 92, 'Uoceno je malo odstupanje u izlaznom naponu pri vecem opterecenju.', '2024-10-07', 'u toku'),
-(293, 93, 'Merenja su u skladu sa ocekivanim teorijskim vrednostima.', '2024-10-10', 'uspesna'),
-(294, 94, 'Potrebno je poboljsati filtriranje signala.', '2024-10-13', 'delimicno uspesna'),
-(295, 95, 'Prototip je prosao test funkcionalnosti.', '2024-10-16', 'neuspesna'),
-(296, 96, 'Primeceno je zagrevanje jedne komponente tokom duzeg rada.', '2024-10-19', 'planirana'),
-(297, 97, 'Izlazni signal je stabilan i ponovljiv.', '2024-10-22', 'u toku'),
-(298, 98, 'Potrebna je dodatna kalibracija senzorskog dela.', '2024-10-25', 'uspesna'),
-(299, 99, 'Sklop reaguje pravilno na promenu ulaznog signala.', '2024-10-28', 'delimicno uspesna'),
-(300, 100, 'Rezultat pokazuje prihvatljivo odstupanje od proracuna.', '2024-10-31', 'neuspesna');
-
--- --------------------------------------------------------
-
---
 -- Table structure for table `prototip`
 --
 
+DROP TABLE IF EXISTS `prototip`;
 CREATE TABLE `prototip` (
   `prototip_id` int(11) NOT NULL,
   `naziv` varchar(100) NOT NULL,
@@ -2251,6 +3038,7 @@ INSERT INTO `prototip` (`prototip_id`, `naziv`, `opis`) VALUES
 -- Table structure for table `resurs`
 --
 
+DROP TABLE IF EXISTS `resurs`;
 CREATE TABLE `resurs` (
   `resurs_id` int(11) NOT NULL,
   `naziv` varchar(100) NOT NULL,
@@ -2369,6 +3157,7 @@ INSERT INTO `resurs` (`resurs_id`, `naziv`, `svojstva`) VALUES
 -- Table structure for table `resurs_eksperiment`
 --
 
+DROP TABLE IF EXISTS `resurs_eksperiment`;
 CREATE TABLE `resurs_eksperiment` (
   `eksperiment_id` int(11) NOT NULL,
   `resurs_id` int(11) NOT NULL,
@@ -2487,6 +3276,7 @@ INSERT INTO `resurs_eksperiment` (`eksperiment_id`, `resurs_id`, `potrebna_kolic
 -- Table structure for table `resurs_sesija`
 --
 
+DROP TABLE IF EXISTS `resurs_sesija`;
 CREATE TABLE `resurs_sesija` (
   `sesija_id` int(11) NOT NULL,
   `resurs_id` int(11) NOT NULL,
@@ -2600,9 +3390,129 @@ INSERT INTO `resurs_sesija` (`sesija_id`, `resurs_id`, `potrosena_kolicina`) VAL
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `senzor`
+--
+
+DROP TABLE IF EXISTS `senzor`;
+CREATE TABLE `senzor` (
+  `senzor_id` int(11) NOT NULL,
+  `naziv` varchar(50) DEFAULT NULL,
+  `opis` text DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `senzor`
+--
+
+INSERT INTO `senzor` (`senzor_id`, `naziv`, `opis`) VALUES
+(1, 'Temperaturni senzor LM35', 'Analogni senzor za merenje temperature u elektronskim kolima.'),
+(2, 'Temperaturni senzor DHT11', 'Digitalni senzor za merenje temperature i vlažnosti vazduha.'),
+(3, 'Temperaturni senzor DHT22', 'Precizniji digitalni senzor temperature i vlažnosti.'),
+(4, 'Termistor NTC 10k', 'Senzor čiji se otpor menja u zavisnosti od temperature.'),
+(5, 'Termistor PTC', 'Senzor kod koga otpor raste sa porastom temperature.'),
+(6, 'Senzor vlažnosti zemljišta', 'Koristi se za merenje količine vlage u zemljištu.'),
+(7, 'Senzor vlažnosti vazduha', 'Meri relativnu vlažnost vazduha u prostoriji ili laboratoriji.'),
+(8, 'Fotootpornik LDR', 'Senzor svetlosti čiji se otpor menja u zavisnosti od osvetljenja.'),
+(9, 'Fotodioda', 'Poluprovodnički senzor za detekciju svetlosti.'),
+(10, 'Fototranzistor', 'Senzor svetlosti sa većim pojačanjem od fotodiode.'),
+(11, 'PIR senzor pokreta', 'Detektuje pokret na osnovu infracrvenog zračenja tela.'),
+(12, 'Ultrazvučni senzor HC-SR04', 'Meri rastojanje pomoću ultrazvučnih talasa.'),
+(13, 'Infracrveni senzor prepreke', 'Koristi se za detekciju prepreka na maloj udaljenosti.'),
+(14, 'Senzor blizine induktivni', 'Detektuje metalne objekte bez fizičkog kontakta.'),
+(15, 'Senzor blizine kapacitivni', 'Detektuje predmete na osnovu promene kapacitivnosti.'),
+(16, 'Hall senzor', 'Detektuje magnetno polje i koristi se za merenje položaja ili brzine.'),
+(17, 'Magnetni reed senzor', 'Prekidački senzor koji reaguje na prisustvo magneta.'),
+(18, 'Akcelerometar MPU6050', 'Meri ubrzanje po više osa i koristi se u sistemima za orijentaciju.'),
+(19, 'Žiroskop MPU6050', 'Meri ugaonu brzinu i promenu orijentacije.'),
+(20, 'IMU senzor', 'Kombinuje akcelerometar, žiroskop i često magnetometar.'),
+(21, 'Senzor pritiska BMP180', 'Digitalni senzor atmosferskog pritiska.'),
+(22, 'Senzor pritiska BMP280', 'Precizniji senzor pritiska i temperature.'),
+(23, 'Senzor pritiska vode', 'Koristi se za merenje pritiska u cevima ili rezervoarima.'),
+(24, 'Senzor protoka vode', 'Meri količinu vode koja protiče kroz cev.'),
+(25, 'Senzor nivoa vode', 'Detektuje nivo tečnosti u posudi ili rezervoaru.'),
+(26, 'Plovni senzor nivoa', 'Mehanički senzor za detekciju nivoa tečnosti.'),
+(27, 'Senzor kiše', 'Detektuje prisustvo vode ili kapljica kiše na površini.'),
+(28, 'Senzor gasa MQ-2', 'Detektuje dim, LPG, metan i zapaljive gasove.'),
+(29, 'Senzor gasa MQ-3', 'Koristi se za detekciju alkohola u vazduhu.'),
+(30, 'Senzor gasa MQ-7', 'Detektuje ugljen-monoksid.'),
+(31, 'Senzor gasa MQ-135', 'Koristi se za detekciju kvaliteta vazduha i štetnih gasova.'),
+(32, 'Senzor dima', 'Detektuje prisustvo dima u prostoriji.'),
+(33, 'Senzor plamena', 'Detektuje infracrveno zračenje koje emituje plamen.'),
+(34, 'Mikrofon senzor zvuka', 'Detektuje nivo zvuka u okolini.'),
+(35, 'Senzor buke', 'Koristi se za merenje jačine zvuka.'),
+(36, 'Senzor vibracija SW-420', 'Detektuje vibracije i udarce.'),
+(37, 'Piezo senzor', 'Generiše električni signal pri pritisku ili vibraciji.'),
+(38, 'Senzor sile FSR', 'Meri pritisak ili silu preko promene otpornosti.'),
+(39, 'Load cell senzor', 'Koristi se za merenje mase ili sile.'),
+(40, 'Senzor težine HX711', 'Modul za očitavanje signala sa load cell senzora.'),
+(41, 'Senzor napona', 'Koristi se za merenje električnog napona u kolu.'),
+(42, 'Senzor struje ACS712', 'Meri jednosmernu ili naizmeničnu struju.'),
+(43, 'Senzor struje ACS758', 'Koristi se za merenje većih struja.'),
+(44, 'Senzor snage', 'Meri električnu snagu potrošača.'),
+(45, 'Senzor otpora', 'Koristi se za određivanje vrednosti električnog otpora.'),
+(46, 'Senzor kapacitivnosti', 'Meri kapacitivnost elektronskih komponenti.'),
+(47, 'Senzor induktivnosti', 'Koristi se za merenje induktivnosti kalemova.'),
+(48, 'Senzor frekvencije', 'Meri frekvenciju električnog signala.'),
+(49, 'Senzor faznog pomaka', 'Koristi se za određivanje fazne razlike između signala.'),
+(50, 'Senzor impulsa', 'Detektuje digitalne impulse u elektronskom kolu.'),
+(51, 'Senzor brzine obrtanja', 'Meri broj obrtaja motora ili osovine.'),
+(52, 'Optički enkoder', 'Koristi se za merenje položaja i brzine rotacije.'),
+(53, 'Rotacioni enkoder', 'Detektuje ugaoni položaj i smer okretanja.'),
+(54, 'Linearni enkoder', 'Koristi se za merenje linearnog pomeraja.'),
+(55, 'Potenciometarski senzor položaja', 'Meri položaj pomoću promene otpornosti.'),
+(56, 'Senzor nagiba', 'Detektuje promenu nagiba ili položaja.'),
+(57, 'Senzor ugla', 'Koristi se za merenje ugaonog položaja.'),
+(58, 'Senzor pomeraja', 'Meri linearno ili ugaono pomeranje objekta.'),
+(59, 'Senzor udaljenosti VL53L0X', 'Laserski senzor za merenje rastojanja.'),
+(60, 'ToF senzor', 'Meri udaljenost na osnovu vremena leta svetlosti.'),
+(61, 'GPS modul', 'Senzor za određivanje geografske lokacije.'),
+(62, 'Kompas modul HMC5883L', 'Meri smer magnetnog polja Zemlje.'),
+(63, 'Magnetometar', 'Koristi se za merenje jačine i pravca magnetnog polja.'),
+(64, 'Senzor boje TCS3200', 'Prepoznaje boje na osnovu intenziteta svetlosti.'),
+(65, 'RGB senzor', 'Meri intenzitet crvene, zelene i plave komponente svetlosti.'),
+(66, 'UV senzor', 'Detektuje intenzitet ultraljubičastog zračenja.'),
+(67, 'Senzor ambijentalnog svetla', 'Meri nivo osvetljenja u okolini.'),
+(68, 'Senzor prašine', 'Detektuje koncentraciju čestica prašine u vazduhu.'),
+(69, 'Senzor kvaliteta vazduha', 'Koristi se za praćenje zagađenja vazduha.'),
+(70, 'CO2 senzor', 'Meri koncentraciju ugljen-dioksida u vazduhu.'),
+(71, 'Senzor temperature DS18B20', 'Digitalni temperaturni senzor sa jednom žicom.'),
+(72, 'Termopar tip K', 'Senzor za merenje visokih temperatura.'),
+(73, 'Senzor infracrvene temperature', 'Meri temperaturu objekta bez kontakta.'),
+(74, 'Senzor dodira TTP223', 'Kapacitivni senzor za detekciju dodira.'),
+(75, 'Kapacitivni touch senzor', 'Koristi se za upravljanje dodirom bez mehaničkog prekidača.'),
+(76, 'Senzor otiska prsta', 'Biometrijski senzor za identifikaciju korisnika.'),
+(77, 'RFID čitač', 'Koristi se za očitavanje RFID kartica i tagova.'),
+(78, 'NFC senzor', 'Omogućava kratkodometnu bežičnu identifikaciju.'),
+(79, 'Senzor zvučnog signala', 'Detektuje prisustvo određenog zvučnog nivoa.'),
+(80, 'Senzor udara', 'Registruje nagle udarce ili promene ubrzanja.'),
+(81, 'Senzor curenja gasa', 'Koristi se za detekciju opasnog curenja gasa.'),
+(82, 'Senzor curenja vode', 'Detektuje prisustvo vode na podlozi.'),
+(83, 'Senzor otvorenosti vrata', 'Detektuje da li su vrata ili poklopac otvoreni.'),
+(84, 'Senzor položaja prekidača', 'Koristi se za detekciju stanja mehaničkog prekidača.'),
+(85, 'Krajnji prekidač', 'Senzor za detekciju krajnjeg položaja mehanizma.'),
+(86, 'Senzor linije', 'Koristi se kod robota za praćenje linije.'),
+(87, 'Reflektivni optički senzor', 'Detektuje refleksiju svetlosti od površine.'),
+(88, 'Senzor brzine vetra', 'Meri brzinu protoka vazduha.'),
+(89, 'Senzor pravca vetra', 'Određuje smer iz kog vetar duva.'),
+(90, 'Senzor vlažnosti drveta', 'Koristi se za merenje vlage u materijalima.'),
+(91, 'Senzor pH vrednosti', 'Meri kiselost ili baznost tečnosti.'),
+(92, 'Senzor provodljivosti tečnosti', 'Meri električnu provodljivost rastvora.'),
+(93, 'Senzor zamućenosti vode', 'Meri količinu nečistoća u vodi.'),
+(94, 'Senzor oksidaciono-redukcionog potencijala', 'Koristi se za analizu kvaliteta vode.'),
+(95, 'Senzor rastvorenog kiseonika', 'Meri količinu kiseonika rastvorenog u tečnosti.'),
+(96, 'Senzor naprezanja', 'Meri deformaciju materijala pod opterećenjem.'),
+(97, 'Senzor temperature PT100', 'Precizan otpornički senzor temperature.'),
+(98, 'Senzor temperature PT1000', 'Otpornički senzor temperature sa većom nominalnom otpornošću.'),
+(99, 'Senzor elektromagnetnog polja', 'Meri prisustvo i jačinu elektromagnetnog zračenja.'),
+(100, 'Senzor jonizujućeg zračenja', 'Koristi se za detekciju nivoa radioaktivnog zračenja.');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `sesija`
 --
 
+DROP TABLE IF EXISTS `sesija`;
 CREATE TABLE `sesija` (
   `sesija_id` int(11) NOT NULL,
   `izvodjenje_id` int(11) NOT NULL,
@@ -2719,9 +3629,33 @@ INSERT INTO `sesija` (`sesija_id`, `izvodjenje_id`, `datum`, `vreme_pocetka`, `v
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `status_izvodjenja`
+--
+
+DROP TABLE IF EXISTS `status_izvodjenja`;
+CREATE TABLE `status_izvodjenja` (
+  `status_id` int(11) NOT NULL,
+  `naziv` varchar(50) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `status_izvodjenja`
+--
+
+INSERT INTO `status_izvodjenja` (`status_id`, `naziv`) VALUES
+(3, 'otkazano'),
+(1, 'planirano'),
+(2, 'započeto'),
+(5, 'završeno neuspešno'),
+(4, 'završeno uspešno');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `teorija`
 --
 
+DROP TABLE IF EXISTS `teorija`;
 CREATE TABLE `teorija` (
   `teorija_id` int(11) NOT NULL,
   `naziv` varchar(100) NOT NULL,
@@ -2841,6 +3775,7 @@ INSERT INTO `teorija` (`teorija_id`, `naziv`, `identifikacioni_podaci`, `opis`) 
 -- Table structure for table `tim_izvodjaca`
 --
 
+DROP TABLE IF EXISTS `tim_izvodjaca`;
 CREATE TABLE `tim_izvodjaca` (
   `izvodjenje_id` int(11) NOT NULL,
   `istrazivac_id` int(11) NOT NULL,
@@ -2960,6 +3895,7 @@ INSERT INTO `tim_izvodjaca` (`izvodjenje_id`, `istrazivac_id`, `opis_uloge`, `ev
 -- Table structure for table `tip_alata`
 --
 
+DROP TABLE IF EXISTS `tip_alata`;
 CREATE TABLE `tip_alata` (
   `tip_alata_id` int(11) NOT NULL,
   `naziv` varchar(100) NOT NULL,
@@ -2985,30 +3921,10 @@ INSERT INTO `tip_alata` (`tip_alata_id`, `naziv`, `opis`) VALUES
 -- --------------------------------------------------------
 
 --
--- Table structure for table `tip_komponente`
---
-
-CREATE TABLE `tip_komponente` (
-  `tip_komponente_id` int(11) NOT NULL,
-  `merna_jedinica_id` int(11) NOT NULL,
-  `naziv` varchar(100) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `tip_komponente`
---
-
-INSERT INTO `tip_komponente` (`tip_komponente_id`, `merna_jedinica_id`, `naziv`) VALUES
-(1, 1, 'otpornik'),
-(2, 5, 'kondenzator'),
-(3, 6, 'kalem');
-
--- --------------------------------------------------------
-
---
 -- Table structure for table `tip_merenja`
 --
 
+DROP TABLE IF EXISTS `tip_merenja`;
 CREATE TABLE `tip_merenja` (
   `tip_merenja_id` int(11) NOT NULL,
   `naziv` varchar(100) NOT NULL
@@ -3025,10 +3941,51 @@ INSERT INTO `tip_merenja` (`tip_merenja_id`, `naziv`) VALUES
 -- --------------------------------------------------------
 
 --
+-- Structure for view `dizajneri_na_eksperimentu`
+--
+DROP TABLE IF EXISTS `dizajneri_na_eksperimentu`;
+
+DROP VIEW IF EXISTS `dizajneri_na_eksperimentu`;
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `dizajneri_na_eksperimentu`  AS SELECT `e`.`eksperiment_id` AS `eksperiment_id`, `e`.`naziv` AS `naziv`, count(`i`.`istrazivac_id`) AS `broj_istrazivaca`, group_concat(concat(`i`.`ime`,' ',`i`.`prezime`) separator ', ') AS `istrazivaci` FROM ((`eksperiment` `e` join `dizajner_eksperiment` `de` on(`e`.`eksperiment_id` = `de`.`eksperiment_id`)) join `istrazivac` `i` on(`de`.`istrazivac_id` = `i`.`istrazivac_id`)) GROUP BY `e`.`eksperiment_id` HAVING count(`i`.`istrazivac_id`) > 0 ;
+
+-- --------------------------------------------------------
+
+--
+-- Structure for view `eksperiment_sva_kola`
+--
+DROP TABLE IF EXISTS `eksperiment_sva_kola`;
+
+DROP VIEW IF EXISTS `eksperiment_sva_kola`;
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `eksperiment_sva_kola`  AS SELECT DISTINCT `e`.`eksperiment_id` AS `eksperiment_id`, `ek`.`elektricno_kolo_id` AS `elektricno_kolo_id`, `ek`.`naziv` AS `naziv`, `ek`.`sema_kola` AS `sema_kola` FROM ((((`eksperiment` `e` join `izvodjenje` `iz` on(`iz`.`eksperiment_id` = `e`.`eksperiment_id`)) join `ispitivanje` `isp` on(`isp`.`izvodjenje_id` = `iz`.`izvodjenje_id`)) join `ispitivanje_elektricnog_kola` `iek` on(`iek`.`ispitivanje_id` = `isp`.`ispitivanje_id`)) join `elektricno_kolo` `ek` on(`ek`.`elektricno_kolo_id` = `iek`.`elektricno_kolo_id`))union select distinct `e`.`eksperiment_id` AS `eksperiment_id`,`ek`.`elektricno_kolo_id` AS `elektricno_kolo_id`,`ek`.`naziv` AS `naziv`,`ek`.`sema_kola` AS `sema_kola` from ((((`eksperiment` `e` join `izvodjenje` `iz` on(`iz`.`eksperiment_id` = `e`.`eksperiment_id`)) join `merenje` `m` on(`m`.`izvodjenje_id` = `iz`.`izvodjenje_id`)) join `merenje_elektricnog_kola` `mek` on(`mek`.`merenje_id` = `m`.`merenje_id`)) join `elektricno_kolo` `ek` on(`ek`.`elektricno_kolo_id` = `mek`.`elektricno_kolo_id`))  ;
+
+-- --------------------------------------------------------
+
+--
+-- Structure for view `eksperiment_svi_prototipi`
+--
+DROP TABLE IF EXISTS `eksperiment_svi_prototipi`;
+
+DROP VIEW IF EXISTS `eksperiment_svi_prototipi`;
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `eksperiment_svi_prototipi`  AS SELECT DISTINCT `e`.`eksperiment_id` AS `eksperiment_id`, `p`.`prototip_id` AS `prototip_id`, `p`.`naziv` AS `naziv`, `p`.`opis` AS `opis`, 'ispitivanje' AS `izvor` FROM ((((`eksperiment` `e` join `izvodjenje` `iz` on(`iz`.`eksperiment_id` = `e`.`eksperiment_id`)) join `ispitivanje` `isp` on(`isp`.`izvodjenje_id` = `iz`.`izvodjenje_id`)) join `ispitivanje_prototipa` `isp_p` on(`isp_p`.`ispitivanje_id` = `isp`.`ispitivanje_id`)) join `prototip` `p` on(`p`.`prototip_id` = `isp_p`.`prototip_id`))union select distinct `e`.`eksperiment_id` AS `eksperiment_id`,`p`.`prototip_id` AS `prototip_id`,`p`.`naziv` AS `naziv`,`p`.`opis` AS `opis`,'merenje' AS `izvor` from ((((`eksperiment` `e` join `izvodjenje` `iz` on(`iz`.`eksperiment_id` = `e`.`eksperiment_id`)) join `merenje` `m` on(`m`.`izvodjenje_id` = `iz`.`izvodjenje_id`)) join `merenje_prototipa` `mp` on(`mp`.`merenje_id` = `m`.`merenje_id`)) join `prototip` `p` on(`p`.`prototip_id` = `mp`.`prototip_id`))  ;
+
+-- --------------------------------------------------------
+
+--
+-- Structure for view `eksperiment_svi_senzori`
+--
+DROP TABLE IF EXISTS `eksperiment_svi_senzori`;
+
+DROP VIEW IF EXISTS `eksperiment_svi_senzori`;
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `eksperiment_svi_senzori`  AS SELECT DISTINCT `e`.`eksperiment_id` AS `eksperiment_id`, `s`.`senzor_id` AS `senzor_id`, `s`.`naziv` AS `naziv`, `s`.`opis` AS `opis`, 'ispitivanje' AS `izvor` FROM ((((`eksperiment` `e` join `izvodjenje` `iz` on(`iz`.`eksperiment_id` = `e`.`eksperiment_id`)) join `ispitivanje` `isp` on(`isp`.`izvodjenje_id` = `iz`.`izvodjenje_id`)) join `ispitivanje_senzora` `isp_s` on(`isp_s`.`ispitivanje_id` = `isp`.`ispitivanje_id`)) join `senzor` `s` on(`s`.`senzor_id` = `isp_s`.`senzor_id`))union select distinct `e`.`eksperiment_id` AS `eksperiment_id`,`s`.`senzor_id` AS `senzor_id`,`s`.`naziv` AS `naziv`,`s`.`opis` AS `opis`,'merenje' AS `izvor` from ((((`eksperiment` `e` join `izvodjenje` `iz` on(`iz`.`eksperiment_id` = `e`.`eksperiment_id`)) join `merenje` `m` on(`m`.`izvodjenje_id` = `iz`.`izvodjenje_id`)) join `merenje_senzora` `ms` on(`ms`.`merenje_id` = `m`.`merenje_id`)) join `senzor` `s` on(`s`.`senzor_id` = `ms`.`senzor_id`))  ;
+
+-- --------------------------------------------------------
+
+--
 -- Structure for view `izradjeni_eksperimenti`
 --
 DROP TABLE IF EXISTS `izradjeni_eksperimenti`;
 
+DROP VIEW IF EXISTS `izradjeni_eksperimenti`;
 CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `izradjeni_eksperimenti`  AS SELECT `eksperiment`.`naziv` AS `naziv`, `eksperiment`.`ciljevi` AS `ciljevi`, `eksperiment`.`teorijski_okvir` AS `teorijski_okvir` FROM `eksperiment` WHERE `eksperiment`.`status` = 'zavrsen' ;
 
 -- --------------------------------------------------------
@@ -3038,6 +3995,7 @@ CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW 
 --
 DROP TABLE IF EXISTS `planirani_eksperimenti`;
 
+DROP VIEW IF EXISTS `planirani_eksperimenti`;
 CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `planirani_eksperimenti`  AS SELECT `eksperiment`.`naziv` AS `naziv`, `eksperiment`.`ciljevi` AS `ciljevi`, `eksperiment`.`teorijski_okvir` AS `teorijski_okvir` FROM `eksperiment` WHERE `eksperiment`.`status` = 'planiran' ;
 
 --
@@ -3099,7 +4057,28 @@ ALTER TABLE `inventar_resursa`
 --
 ALTER TABLE `ispitivanje`
   ADD PRIMARY KEY (`ispitivanje_id`),
-  ADD KEY `elektricno_kolo_id` (`elektricno_kolo_id`);
+  ADD KEY `fk_ispitivanje_izvodjenje` (`izvodjenje_id`);
+
+--
+-- Indexes for table `ispitivanje_elektricnog_kola`
+--
+ALTER TABLE `ispitivanje_elektricnog_kola`
+  ADD PRIMARY KEY (`ispitivanje_id`),
+  ADD KEY `fk_ispitivanje_kola_kolo` (`elektricno_kolo_id`);
+
+--
+-- Indexes for table `ispitivanje_prototipa`
+--
+ALTER TABLE `ispitivanje_prototipa`
+  ADD PRIMARY KEY (`ispitivanje_id`),
+  ADD KEY `fk_ispitivanje_prototipa_prototip` (`prototip_id`);
+
+--
+-- Indexes for table `ispitivanje_senzora`
+--
+ALTER TABLE `ispitivanje_senzora`
+  ADD PRIMARY KEY (`ispitivanje_id`),
+  ADD KEY `fk_ispitivanje_senzora_senzor` (`senzor_id`);
 
 --
 -- Indexes for table `istrazivac`
@@ -3114,13 +4093,6 @@ ALTER TABLE `izvodjenje`
   ADD PRIMARY KEY (`izvodjenje_id`),
   ADD KEY `eksperiment_id` (`eksperiment_id`),
   ADD KEY `laboratorija_id` (`laboratorija_id`);
-
---
--- Indexes for table `komponenta`
---
-ALTER TABLE `komponenta`
-  ADD PRIMARY KEY (`komponenta_id`),
-  ADD KEY `tip_komponente_id` (`tip_komponente_id`);
 
 --
 -- Indexes for table `korisnik`
@@ -3141,22 +4113,35 @@ ALTER TABLE `laboratorija`
 --
 ALTER TABLE `merenje`
   ADD PRIMARY KEY (`merenje_id`),
-  ADD KEY `ispitivanje_id` (`ispitivanje_id`),
   ADD KEY `tip_merenja_id` (`tip_merenja_id`),
-  ADD KEY `merna_jedinica_id` (`merna_jedinica_id`);
+  ADD KEY `fk_merenje_izvodjenje` (`izvodjenje_id`);
+
+--
+-- Indexes for table `merenje_elektricnog_kola`
+--
+ALTER TABLE `merenje_elektricnog_kola`
+  ADD PRIMARY KEY (`merenje_id`),
+  ADD KEY `fk_merenje_kola_kolo` (`elektricno_kolo_id`);
+
+--
+-- Indexes for table `merenje_prototipa`
+--
+ALTER TABLE `merenje_prototipa`
+  ADD PRIMARY KEY (`merenje_id`),
+  ADD KEY `fk_merenje_prototipa_prototip` (`prototip_id`);
+
+--
+-- Indexes for table `merenje_senzora`
+--
+ALTER TABLE `merenje_senzora`
+  ADD PRIMARY KEY (`merenje_id`),
+  ADD KEY `fk_merenje_senzora_senzor` (`senzor_id`);
 
 --
 -- Indexes for table `merna_jedinica`
 --
 ALTER TABLE `merna_jedinica`
   ADD PRIMARY KEY (`merna_jedinica_id`);
-
---
--- Indexes for table `proba_prototip`
---
-ALTER TABLE `proba_prototip`
-  ADD PRIMARY KEY (`proba_prototip_id`),
-  ADD KEY `prototip_id` (`prototip_id`);
 
 --
 -- Indexes for table `prototip`
@@ -3185,11 +4170,24 @@ ALTER TABLE `resurs_sesija`
   ADD KEY `resurs_id` (`resurs_id`);
 
 --
+-- Indexes for table `senzor`
+--
+ALTER TABLE `senzor`
+  ADD PRIMARY KEY (`senzor_id`);
+
+--
 -- Indexes for table `sesija`
 --
 ALTER TABLE `sesija`
   ADD PRIMARY KEY (`sesija_id`),
   ADD KEY `izvodjenje_id` (`izvodjenje_id`);
+
+--
+-- Indexes for table `status_izvodjenja`
+--
+ALTER TABLE `status_izvodjenja`
+  ADD PRIMARY KEY (`status_id`),
+  ADD UNIQUE KEY `naziv` (`naziv`);
 
 --
 -- Indexes for table `teorija`
@@ -3210,13 +4208,6 @@ ALTER TABLE `tim_izvodjaca`
 --
 ALTER TABLE `tip_alata`
   ADD PRIMARY KEY (`tip_alata_id`);
-
---
--- Indexes for table `tip_komponente`
---
-ALTER TABLE `tip_komponente`
-  ADD PRIMARY KEY (`tip_komponente_id`),
-  ADD KEY `merna_jedinica_id` (`merna_jedinica_id`);
 
 --
 -- Indexes for table `tip_merenja`
@@ -3250,13 +4241,13 @@ ALTER TABLE `elektricno_kolo`
 -- AUTO_INCREMENT for table `ispitivanje`
 --
 ALTER TABLE `ispitivanje`
-  MODIFY `ispitivanje_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=102;
+  MODIFY `ispitivanje_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=301;
 
 --
 -- AUTO_INCREMENT for table `istrazivac`
 --
 ALTER TABLE `istrazivac`
-  MODIFY `istrazivac_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=101;
+  MODIFY `istrazivac_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=111;
 
 --
 -- AUTO_INCREMENT for table `izvodjenje`
@@ -3265,16 +4256,10 @@ ALTER TABLE `izvodjenje`
   MODIFY `izvodjenje_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=101;
 
 --
--- AUTO_INCREMENT for table `komponenta`
---
-ALTER TABLE `komponenta`
-  MODIFY `komponenta_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=101;
-
---
 -- AUTO_INCREMENT for table `korisnik`
 --
 ALTER TABLE `korisnik`
-  MODIFY `korisnik_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=101;
+  MODIFY `korisnik_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=106;
 
 --
 -- AUTO_INCREMENT for table `laboratorija`
@@ -3286,19 +4271,13 @@ ALTER TABLE `laboratorija`
 -- AUTO_INCREMENT for table `merenje`
 --
 ALTER TABLE `merenje`
-  MODIFY `merenje_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=101;
+  MODIFY `merenje_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=301;
 
 --
 -- AUTO_INCREMENT for table `merna_jedinica`
 --
 ALTER TABLE `merna_jedinica`
   MODIFY `merna_jedinica_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
-
---
--- AUTO_INCREMENT for table `proba_prototip`
---
-ALTER TABLE `proba_prototip`
-  MODIFY `proba_prototip_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=301;
 
 --
 -- AUTO_INCREMENT for table `prototip`
@@ -3313,10 +4292,22 @@ ALTER TABLE `resurs`
   MODIFY `resurs_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=101;
 
 --
+-- AUTO_INCREMENT for table `senzor`
+--
+ALTER TABLE `senzor`
+  MODIFY `senzor_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=101;
+
+--
 -- AUTO_INCREMENT for table `sesija`
 --
 ALTER TABLE `sesija`
   MODIFY `sesija_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=101;
+
+--
+-- AUTO_INCREMENT for table `status_izvodjenja`
+--
+ALTER TABLE `status_izvodjenja`
+  MODIFY `status_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `teorija`
@@ -3329,12 +4320,6 @@ ALTER TABLE `teorija`
 --
 ALTER TABLE `tip_alata`
   MODIFY `tip_alata_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
-
---
--- AUTO_INCREMENT for table `tip_komponente`
---
-ALTER TABLE `tip_komponente`
-  MODIFY `tip_komponente_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `tip_merenja`
@@ -3350,109 +4335,132 @@ ALTER TABLE `tip_merenja`
 -- Constraints for table `alat`
 --
 ALTER TABLE `alat`
-  ADD CONSTRAINT `alat_ibfk_1` FOREIGN KEY (`laboratorija_id`) REFERENCES `laboratorija` (`laboratorija_id`) ON UPDATE CASCADE,
-  ADD CONSTRAINT `alat_ibfk_2` FOREIGN KEY (`tip_alata_id`) REFERENCES `tip_alata` (`tip_alata_id`) ON UPDATE CASCADE;
+  ADD CONSTRAINT `alat_laboratorija` FOREIGN KEY (`laboratorija_id`) REFERENCES `laboratorija` (`laboratorija_id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `alat_tip_alata` FOREIGN KEY (`tip_alata_id`) REFERENCES `tip_alata` (`tip_alata_id`) ON UPDATE CASCADE;
 
 --
 -- Constraints for table `alat_eksperiment`
 --
 ALTER TABLE `alat_eksperiment`
-  ADD CONSTRAINT `alat_eksperiment_ibfk_1` FOREIGN KEY (`eksperiment_id`) REFERENCES `eksperiment` (`eksperiment_id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `alat_eksperiment_ibfk_2` FOREIGN KEY (`tip_alata_id`) REFERENCES `tip_alata` (`tip_alata_id`) ON UPDATE CASCADE;
+  ADD CONSTRAINT `alat_eksperiment_alat` FOREIGN KEY (`tip_alata_id`) REFERENCES `tip_alata` (`tip_alata_id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `alat_eksperiment_eksperiment` FOREIGN KEY (`eksperiment_id`) REFERENCES `eksperiment` (`eksperiment_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `alat_sesija`
 --
 ALTER TABLE `alat_sesija`
-  ADD CONSTRAINT `alat_sesija_ibfk_1` FOREIGN KEY (`sesija_id`) REFERENCES `sesija` (`sesija_id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `alat_sesija_ibfk_2` FOREIGN KEY (`alat_id`) REFERENCES `alat` (`alat_id`) ON UPDATE CASCADE;
+  ADD CONSTRAINT `alat_sesija_alat` FOREIGN KEY (`alat_id`) REFERENCES `alat` (`alat_id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `alat_sesija_sesija` FOREIGN KEY (`sesija_id`) REFERENCES `sesija` (`sesija_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `dizajner_eksperiment`
 --
 ALTER TABLE `dizajner_eksperiment`
-  ADD CONSTRAINT `dizajner_eksperiment_ibfk_1` FOREIGN KEY (`eksperiment_id`) REFERENCES `eksperiment` (`eksperiment_id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `dizajner_eksperiment_ibfk_2` FOREIGN KEY (`istrazivac_id`) REFERENCES `istrazivac` (`istrazivac_id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `dizajner_eksperiment_ibfk_3` FOREIGN KEY (`teorija_id`) REFERENCES `teorija` (`teorija_id`) ON UPDATE CASCADE;
+  ADD CONSTRAINT `dizajner_eksperiment_eksperiment` FOREIGN KEY (`eksperiment_id`) REFERENCES `eksperiment` (`eksperiment_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `dizajner_eksperiment_istrazivac` FOREIGN KEY (`istrazivac_id`) REFERENCES `istrazivac` (`istrazivac_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `dizajner_eksperiment_teorija` FOREIGN KEY (`teorija_id`) REFERENCES `teorija` (`teorija_id`) ON UPDATE CASCADE;
 
 --
 -- Constraints for table `inventar_resursa`
 --
 ALTER TABLE `inventar_resursa`
-  ADD CONSTRAINT `inventar_resursa_ibfk_1` FOREIGN KEY (`laboratorija_id`) REFERENCES `laboratorija` (`laboratorija_id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `inventar_resursa_ibfk_2` FOREIGN KEY (`resurs_id`) REFERENCES `resurs` (`resurs_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `inventar_resursa_laboratorija` FOREIGN KEY (`laboratorija_id`) REFERENCES `laboratorija` (`laboratorija_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `inventar_resursa_resurs` FOREIGN KEY (`resurs_id`) REFERENCES `resurs` (`resurs_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `ispitivanje`
 --
 ALTER TABLE `ispitivanje`
-  ADD CONSTRAINT `ispitivanje_ibfk_1` FOREIGN KEY (`elektricno_kolo_id`) REFERENCES `elektricno_kolo` (`elektricno_kolo_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `ispitivanje_izvodjenje` FOREIGN KEY (`izvodjenje_id`) REFERENCES `izvodjenje` (`izvodjenje_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `ispitivanje_elektricnog_kola`
+--
+ALTER TABLE `ispitivanje_elektricnog_kola`
+  ADD CONSTRAINT `ispitivanje_elektricnog_kola_elektricno_kolo` FOREIGN KEY (`elektricno_kolo_id`) REFERENCES `elektricno_kolo` (`elektricno_kolo_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `ispitivanje_elektricnog_kola_ispitivanje` FOREIGN KEY (`ispitivanje_id`) REFERENCES `ispitivanje` (`ispitivanje_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `ispitivanje_prototipa`
+--
+ALTER TABLE `ispitivanje_prototipa`
+  ADD CONSTRAINT `ispitivanje_prototipa_ispitivanje` FOREIGN KEY (`ispitivanje_id`) REFERENCES `ispitivanje` (`ispitivanje_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `ispitivanje_prototipa_prototip` FOREIGN KEY (`prototip_id`) REFERENCES `prototip` (`prototip_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `ispitivanje_senzora`
+--
+ALTER TABLE `ispitivanje_senzora`
+  ADD CONSTRAINT `ispitivanje_senzora_ispitivanje` FOREIGN KEY (`ispitivanje_id`) REFERENCES `ispitivanje` (`ispitivanje_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `ispitivanje_senzora_senzor` FOREIGN KEY (`senzor_id`) REFERENCES `senzor` (`senzor_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `izvodjenje`
 --
 ALTER TABLE `izvodjenje`
-  ADD CONSTRAINT `izvodjenje_ibfk_1` FOREIGN KEY (`eksperiment_id`) REFERENCES `eksperiment` (`eksperiment_id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `izvodjenje_ibfk_2` FOREIGN KEY (`laboratorija_id`) REFERENCES `laboratorija` (`laboratorija_id`) ON UPDATE CASCADE;
-
---
--- Constraints for table `komponenta`
---
-ALTER TABLE `komponenta`
-  ADD CONSTRAINT `komponenta_ibfk_1` FOREIGN KEY (`tip_komponente_id`) REFERENCES `tip_komponente` (`tip_komponente_id`) ON UPDATE CASCADE;
+  ADD CONSTRAINT `izvodjenje_eksperiment` FOREIGN KEY (`eksperiment_id`) REFERENCES `eksperiment` (`eksperiment_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `izvodjenje_laboratorija` FOREIGN KEY (`laboratorija_id`) REFERENCES `laboratorija` (`laboratorija_id`) ON UPDATE CASCADE;
 
 --
 -- Constraints for table `korisnik`
 --
 ALTER TABLE `korisnik`
-  ADD CONSTRAINT `korisnik_ibfk_1` FOREIGN KEY (`istrazivac_id`) REFERENCES `istrazivac` (`istrazivac_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `korisnik_istrazivac` FOREIGN KEY (`istrazivac_id`) REFERENCES `istrazivac` (`istrazivac_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `merenje`
 --
 ALTER TABLE `merenje`
-  ADD CONSTRAINT `merenje_ibfk_1` FOREIGN KEY (`ispitivanje_id`) REFERENCES `ispitivanje` (`ispitivanje_id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `merenje_ibfk_2` FOREIGN KEY (`tip_merenja_id`) REFERENCES `tip_merenja` (`tip_merenja_id`) ON UPDATE CASCADE,
-  ADD CONSTRAINT `merenje_ibfk_3` FOREIGN KEY (`merna_jedinica_id`) REFERENCES `merna_jedinica` (`merna_jedinica_id`) ON UPDATE CASCADE;
+  ADD CONSTRAINT `merenje_izvodjenje` FOREIGN KEY (`izvodjenje_id`) REFERENCES `izvodjenje` (`izvodjenje_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `merenje_tip_merenja` FOREIGN KEY (`tip_merenja_id`) REFERENCES `tip_merenja` (`tip_merenja_id`) ON UPDATE CASCADE;
 
 --
--- Constraints for table `proba_prototip`
+-- Constraints for table `merenje_elektricnog_kola`
 --
-ALTER TABLE `proba_prototip`
-  ADD CONSTRAINT `proba_prototip_ibfk_1` FOREIGN KEY (`prototip_id`) REFERENCES `prototip` (`prototip_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `merenje_elektricnog_kola`
+  ADD CONSTRAINT `merenje_elektricnog_kola_elektricno_kolo` FOREIGN KEY (`elektricno_kolo_id`) REFERENCES `elektricno_kolo` (`elektricno_kolo_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `merenje_elektricnog_kola_merenje` FOREIGN KEY (`merenje_id`) REFERENCES `merenje` (`merenje_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `merenje_prototipa`
+--
+ALTER TABLE `merenje_prototipa`
+  ADD CONSTRAINT `merenje_prototipa_merenje` FOREIGN KEY (`merenje_id`) REFERENCES `merenje` (`merenje_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `merenje_prototipa_prototip` FOREIGN KEY (`prototip_id`) REFERENCES `prototip` (`prototip_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `merenje_senzora`
+--
+ALTER TABLE `merenje_senzora`
+  ADD CONSTRAINT `merenje_senzora_merenje` FOREIGN KEY (`merenje_id`) REFERENCES `merenje` (`merenje_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `merenje_senzora_senzor` FOREIGN KEY (`senzor_id`) REFERENCES `senzor` (`senzor_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `resurs_eksperiment`
 --
 ALTER TABLE `resurs_eksperiment`
-  ADD CONSTRAINT `resurs_eksperiment_ibfk_1` FOREIGN KEY (`eksperiment_id`) REFERENCES `eksperiment` (`eksperiment_id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `resurs_eksperiment_ibfk_2` FOREIGN KEY (`resurs_id`) REFERENCES `resurs` (`resurs_id`) ON UPDATE CASCADE;
+  ADD CONSTRAINT `resurs_eksperiment_eksperiment` FOREIGN KEY (`eksperiment_id`) REFERENCES `eksperiment` (`eksperiment_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `resurs_eksperiment_resurs` FOREIGN KEY (`resurs_id`) REFERENCES `resurs` (`resurs_id`) ON UPDATE CASCADE;
 
 --
 -- Constraints for table `resurs_sesija`
 --
 ALTER TABLE `resurs_sesija`
-  ADD CONSTRAINT `resurs_sesija_ibfk_1` FOREIGN KEY (`sesija_id`) REFERENCES `sesija` (`sesija_id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `resurs_sesija_ibfk_2` FOREIGN KEY (`resurs_id`) REFERENCES `resurs` (`resurs_id`) ON UPDATE CASCADE;
+  ADD CONSTRAINT `resurs_sesija_resurs` FOREIGN KEY (`resurs_id`) REFERENCES `resurs` (`resurs_id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `resurs_sesija_sesija` FOREIGN KEY (`sesija_id`) REFERENCES `sesija` (`sesija_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `sesija`
 --
 ALTER TABLE `sesija`
-  ADD CONSTRAINT `sesija_ibfk_1` FOREIGN KEY (`izvodjenje_id`) REFERENCES `izvodjenje` (`izvodjenje_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `sesija_izvodjenje` FOREIGN KEY (`izvodjenje_id`) REFERENCES `izvodjenje` (`izvodjenje_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `tim_izvodjaca`
 --
 ALTER TABLE `tim_izvodjaca`
-  ADD CONSTRAINT `tim_izvodjaca_ibfk_1` FOREIGN KEY (`izvodjenje_id`) REFERENCES `izvodjenje` (`izvodjenje_id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `tim_izvodjaca_ibfk_2` FOREIGN KEY (`istrazivac_id`) REFERENCES `istrazivac` (`istrazivac_id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Constraints for table `tip_komponente`
---
-ALTER TABLE `tip_komponente`
-  ADD CONSTRAINT `tip_komponente_ibfk_1` FOREIGN KEY (`merna_jedinica_id`) REFERENCES `merna_jedinica` (`merna_jedinica_id`) ON UPDATE CASCADE;
+  ADD CONSTRAINT `tim_izvodjaca_istrazivac` FOREIGN KEY (`istrazivac_id`) REFERENCES `istrazivac` (`istrazivac_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `tim_izvodjaca_izvodjenje` FOREIGN KEY (`izvodjenje_id`) REFERENCES `izvodjenje` (`izvodjenje_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

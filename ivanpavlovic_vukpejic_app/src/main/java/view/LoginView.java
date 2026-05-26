@@ -60,7 +60,9 @@ public class LoginView {
         root.setAlignment(Pos.CENTER);
 
         stage.setTitle("Login");
-        stage.setScene(new Scene(root, 540, 340));
+        Scene scene = new Scene(root, 540, 340);
+        Style.apply(scene);
+        stage.setScene(scene);
         stage.show();
     }
 
@@ -120,7 +122,9 @@ public class LoginView {
         root.setAlignment(Pos.CENTER);
 
         stage.setTitle("Registracija");
-        stage.setScene(new Scene(root, 620, 500));
+        Scene scene = new Scene(root, 620, 500);
+        Style.apply(scene);
+        stage.setScene(scene);
         stage.show();
     }
 

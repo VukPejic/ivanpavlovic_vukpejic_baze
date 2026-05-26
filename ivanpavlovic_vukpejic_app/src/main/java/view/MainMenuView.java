@@ -19,12 +19,6 @@ public class MainMenuView {
 
         Label userLabel = new Label("Prijavljeni korisnik: " + korisnik.getIme() + " " + korisnik.getPrezime() + " (" + korisnik.getUsername() + ")");
 
-        Button testButton = menuButton("Ispitivanje električnog kola");
-        testButton.setOnAction(event -> controller.otvoriIspitivanje(stage, korisnik));
-
-        Button createButton = menuButton("Unos nove šeme kola");
-        createButton.setOnAction(event -> controller.otvoriUnosSeme(stage, korisnik));
-
         Button experimentsButton = menuButton("Pregled eksperimenata");
         experimentsButton.setOnAction(event -> controller.otvoriPregledEksperimenata(stage, korisnik));
 
@@ -37,12 +31,14 @@ public class MainMenuView {
         Button logoutButton = menuButton("Odjavi se");
         logoutButton.setOnAction(event -> controller.odjaviSe(stage));
 
-        VBox root = new VBox(18, titleLabel, userLabel, testButton, createButton, experimentsButton, statusButton, deleteSessionButton, logoutButton);
+        VBox root = new VBox(18, titleLabel, userLabel, experimentsButton, statusButton, deleteSessionButton, logoutButton);
         root.setAlignment(Pos.CENTER);
         root.setPadding(new Insets(30));
 
         stage.setTitle("Meni");
-        stage.setScene(new Scene(root, 580, 560));
+        Scene scene = new Scene(root, 560, 460);
+        Style.apply(scene);
+        stage.setScene(scene);
         stage.show();
     }
 

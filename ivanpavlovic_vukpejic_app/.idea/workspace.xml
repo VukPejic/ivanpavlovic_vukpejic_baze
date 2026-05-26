@@ -4,7 +4,89 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3ffc7f70-aaec-42ae-8fad-8fb71f9fad20" name="Changes" comment="" />
+    <list default="true" id="d9784d7e-29ee-4980-bfc0-6a63a2c7b84e" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/jarRepositories.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/controller/EksperimentiController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ivanpavlovic_vukpejic_baza.sql" beforeDir="false" afterPath="$PROJECT_DIR$/ivanpavlovic_vukpejic_baza.sql" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/MainKlasa.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/controller/AuthController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/controller/CircuitCreateController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/controller/CircuitTestController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/controller/ExperimentStatusController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/controller/EksperimentStatusController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/controller/ExperimentsController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/controller/MainMenuController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/controller/MainMenuController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/controller/SessionDeleteController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/controller/SesijaController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/model/Database.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/model/Eksperiment.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/model/Eksperiment.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/model/ElektricnoKolo.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/model/ElektricnoKolo.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/model/Ispitivanje.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/model/Korisnik.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/model/Korisnik.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/model/Sesija.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/model/Sesija.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/view/CircuitCreateView.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/view/CircuitView.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/view/ExperimentStatusView.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/view/ExperimentStatusView.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/view/ExperimentsView.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/view/ExperimentsView.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/view/LoginView.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/view/LoginView.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/view/MainMenuView.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/view/MainMenuView.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/view/SessionDeleteView.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/view/SessionDeleteView.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/db.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/app/App.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/app/MainKlasa.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/controller/AuthController$LoginResult.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/controller/AuthController.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/controller/CircuitCreateController$CircuitElement.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/controller/CircuitCreateController$ElementType.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/controller/CircuitCreateController$OperationResult.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/controller/CircuitCreateController$SaveResult.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/controller/CircuitCreateController$SchemeParser.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/controller/CircuitCreateController.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/controller/CircuitTestController$CircuitListResult.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/controller/CircuitTestController$OperationResult.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/controller/CircuitTestController.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/controller/ExperimentStatusController$ExperimentsLoadResult.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/controller/ExperimentStatusController$StatusChangeResult.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/controller/ExperimentStatusController.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/controller/ExperimentsController$ExperimentsData.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/controller/ExperimentsController.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/controller/MainMenuController.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/controller/SessionDeleteController$OperationResult.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/controller/SessionDeleteController$SessionListResult.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/controller/SessionDeleteController.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/db.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/model/Database.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/model/Eksperiment.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/model/ElektricnoKolo.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/model/Ispitivanje.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/model/Korisnik.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/model/Sesija.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/view/CircuitCreateView$CircuitElement.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/view/CircuitCreateView$ComponentNamer.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/view/CircuitCreateView$ElementType.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/view/CircuitCreateView$LayoutInfo.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/view/CircuitCreateView$SchemeParser.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/view/CircuitCreateView.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/view/CircuitView$1.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/view/CircuitView$2.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/view/CircuitView$CircuitElement.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/view/CircuitView$Complex.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/view/CircuitView$ComponentNamer.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/view/CircuitView$ElementType.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/view/CircuitView$LayoutInfo.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/view/CircuitView$SchemeParser.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/view/CircuitView.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/view/ExperimentStatusView$1.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/view/ExperimentStatusView.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/view/ExperimentsView.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/view/LoginView.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/view/MainMenuView.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/view/SessionDeleteView.class" beforeDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -13,95 +95,26 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
   </component>
-  <component name="ProjectColorInfo">{
-  &quot;associatedIndex&quot;: 5
-}</component>
-  <component name="ProjectId" id="2f8BxOycroXY7VHscoDPlnbiMap" />
+  <component name="ProjectColorInfo"><![CDATA[{
+  "associatedIndex": 5
+}]]></component>
+  <component name="ProjectId" id="3EEw3lqrFMwx4iZi7XpcJGZMMpl" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
-    "Application.App.executor": "Run",
-    "Application.ComboboxEntityDemoCellFactory.executor": "Run",
-    "Application.MainKlasa.executor": "Run",
-    "Application.app.App.executor": "Run",
     "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "codeWithMe.voiceChat.enabledByDefault": "false",
     "git-widget-placeholder": "master",
     "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "D:/ivanpavlovic_vukpejic_baze/ivanpavlovic_vukpejic_app",
-    "nodejs_package_manager_path": "npm",
-    "onboarding.tips.debug.path": "/home/bojana/Documents/nastava/OOP/2024/workspace/OOP-JavaFX/src/Main.java",
-    "project.structure.last.edited": "Project",
-    "project.structure.proportion": "0.0",
-    "project.structure.side.proportion": "0.2"
+    "nodejs_package_manager_path": "npm"
   }
 }]]></component>
-  <component name="RecentsManager">
-    <key name="CopyFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$" />
-      <recent name="$PROJECT_DIR$/src/main/java" />
-      <recent name="$PROJECT_DIR$/src" />
-      <recent name="$PROJECT_DIR$/src/test/java" />
-    </key>
-    <key name="MoveFile.RECENT_KEYS">
-      <recent name="C:\Users\bdimicsurla\Downloads\OOP-JavaFX-primer\OOP-JavaFX\src\main\java" />
-    </key>
-  </component>
-  <component name="RunManager">
-    <configuration name="App" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="raspored.App" />
-      <module name="OOP-JavaFX" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="app.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="ComboboxEntityDemoCellFactory" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="artikli.ComboboxEntityDemoCellFactory" />
-      <module name="OOP-JavaFX" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="artikli.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="MainKlasa" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="app.MainKlasa" />
-      <module name="OOP-JavaFX" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="app.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <recent_temporary>
-      <list>
-        <item itemvalue="Application.App" />
-        <item itemvalue="Application.MainKlasa" />
-        <item itemvalue="Application.ComboboxEntityDemoCellFactory" />
-      </list>
-    </recent_temporary>
-  </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
@@ -110,29 +123,17 @@
       </set>
     </attachedChunks>
   </component>
-  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
-      <changelist id="3ffc7f70-aaec-42ae-8fad-8fb71f9fad20" name="Changes" comment="" />
-      <created>1713173075198</created>
+      <changelist id="d9784d7e-29ee-4980-bfc0-6a63a2c7b84e" name="Changes" comment="" />
+      <created>1779756842203</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
-      <updated>1713173075198</updated>
+      <updated>1779756842203</updated>
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
-  </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/Main.java</url>
-          <line>11</line>
-          <option name="timeStamp" value="1" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
   </component>
 </project>

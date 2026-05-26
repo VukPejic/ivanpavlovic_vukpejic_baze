@@ -1,6 +1,6 @@
 package view;
 
-import controller.ExperimentStatusController;
+import controller.EksperimentStatusController;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -16,7 +16,7 @@ import model.Eksperiment;
 import model.Korisnik;
 
 public class ExperimentStatusView {
-    private final ExperimentStatusController controller = new ExperimentStatusController();
+    private final EksperimentStatusController controller = new EksperimentStatusController();
     private final TableView<Eksperiment> tableView = new TableView<>();
     private final ComboBox<Eksperiment> experimentComboBox = new ComboBox<>();
     private final ComboBox<String> statusComboBox = new ComboBox<>();
@@ -77,7 +77,9 @@ public class ExperimentStatusView {
         root.setPadding(new Insets(18));
 
         stage.setTitle("Promena statusa eksperimenta");
-        stage.setScene(new Scene(root, 1220, 720));
+        Scene scene = new Scene(root, 1220, 720);
+        Style.apply(scene);
+        stage.setScene(scene);
         stage.show();
 
         loadExperiments();
@@ -109,7 +111,7 @@ public class ExperimentStatusView {
     }
 
     private void loadExperiments() {
-        ExperimentStatusController.ExperimentsLoadResult result = controller.ucitajEksperimente();
+        EksperimentStatusController.ExperimentsLoadResult result = controller.ucitajEksperimente();
         tableView.setItems(FXCollections.observableArrayList(result.getEksperimenti()));
         experimentComboBox.setItems(FXCollections.observableArrayList(result.getEksperimenti()));
         if (!result.getEksperimenti().isEmpty()) {
@@ -119,7 +121,7 @@ public class ExperimentStatusView {
     }
 
     private void changeStatus() {
-        ExperimentStatusController.StatusChangeResult result = controller.promeniStatus(
+        EksperimentStatusController.StatusChangeResult result = controller.promeniStatus(
                 experimentComboBox.getValue(), statusComboBox.getValue()
         );
         statusLabel.setText(result.getMessage());
